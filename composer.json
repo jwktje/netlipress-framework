@@ -1,0 +1,25 @@
+{
+  "name": "fiascode/netlipress",
+  "type": "library",
+  "description": "NetlifyCMS Wordpress Theme Framework",
+  "keywords": ["netlify", "wordpress"],
+  "homepage": "https://fiascode.nl",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Jan Willem Kolkman",
+      "email": "info@fiascode.nl",
+      "homepage": "https://fiascode.nl",
+      "role": "Developer"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "erusev/parsedown": "^1.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "Netlipress\\": "src/classes"
+    }
+  }
+}
