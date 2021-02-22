@@ -1,5 +1,6 @@
 {
   "name": "netlipress/framework",
+  "version": "0.0.1",
   "type": "library",
   "description": "NetlifyCMS Wordpress Theme Framework",
   "keywords": ["netlify", "wordpress"],
