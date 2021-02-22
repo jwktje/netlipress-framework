@@ -73,7 +73,7 @@ function wp_get_attachment_image($url)
 {
     if (!$url) return;
     $alt = basename($url);
-    $sizes = getimagesize(APP_ROOT . $url);
+    $sizes = getimagesize(APP_ROOT . PUBLIC_DIR . $url);
     return "<img src='$url' alt='$alt' $sizes[3]/>";
 }
 
@@ -93,6 +93,10 @@ function get_template_part($slug) {
     }
 }
 
-function get_template_directory_uri() {
+function get_template_directory() {
     return TEMPLATE_DIR;
+}
+
+function get_template_directory_uri() {
+    return TEMPLATE_URI;
 }
