@@ -20,10 +20,16 @@ class Router
         $pathArr = explode('/', $req['path']);
 
         //Use first part of the path for collection matching
-        $collection = !empty($pathArr[1]) ? $pathArr[1] : 'page';
+        $collection = $pathArr[1];
 
-        //Remove first parth from the array and create new path
-        unset($pathArr[1]);
+        if(!isset($this->collectionTemplateMapping[$collection])) {
+            //If the first part of the path isn't a mapped collection we assume it's a page
+            $collection = 'page';
+        } else {
+            //Remove first parth from the array because it's the collection base slug
+            unset($pathArr[1]);
+        }
+
         $path = implode('/', $pathArr);
 
         //Build file path
