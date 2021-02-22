@@ -2,7 +2,10 @@
   "name": "netlipress/framework",
   "type": "library",
   "description": "NetlifyCMS Wordpress Theme Framework",
-  "keywords": ["netlify", "wordpress"],
+  "keywords": [
+    "netlify",
+    "wordpress"
+  ],
   "homepage": "https://fiascode.nl",
   "license": "MIT",
   "authors": [

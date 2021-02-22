@@ -2,6 +2,8 @@
 
 namespace Netlipress;
 
+use Netlipress\Router;
+
 class Template
 {
     /**
@@ -9,7 +11,8 @@ class Template
      * @param $template
      * @param $data
      */
-    public function render($template, $data) {
+    public function render($template, $data)
+    {
         $templateFile = APP_ROOT . TEMPLATE_DIR . '/' . $template . '.php';
         if (file_exists($templateFile)) {
             //Make data available as global for use in template
@@ -17,7 +20,8 @@ class Template
             $post = $data;
             include($templateFile);
         } else {
-            return_404('Template not found');
+            $router = new Router();
+            $router->notFound('Template not found');
         }
     }
 }

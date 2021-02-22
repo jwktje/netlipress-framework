@@ -18,8 +18,8 @@ class Application
     }
 
     private function setConfig() {
-        if(!defined('PAGE_DIR')) {
-            define('PAGE_DIR', '/content/pages');
+        if(!defined('CONTENT_DIR')) {
+            define('CONTENT_DIR', '/content');
         }
         if(!defined('TEMPLATE_DIR')) {
             define('TEMPLATE_DIR', '/theme');
