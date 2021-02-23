@@ -15,18 +15,24 @@ class Router
      */
     public function run()
     {
-        //Turn requested path into a collection + a path var
+        //Parse the incoming request
         $req = parse_url($_SERVER['REQUEST_URI']);
-        $pathArr = explode('/', $req['path']);
+
+        //If req path is the blog home, setup the query data and render the post index template
+        if($req['path'] == BLOG_HOME) {
+            $this->blog_home();
+            return;
+        }
 
         //Use first part of the path for collection matching
+        $pathArr = explode('/', $req['path']);
         $collection = $pathArr[1];
 
         if(!isset($this->collectionTemplateMapping[$collection])) {
             //If the first part of the path isn't a mapped collection we assume it's a page
             $collection = 'page';
         } else {
-            //Remove first parth from the array because it's the collection base slug
+            //Remove first part from the array because it's the collection base slug
             unset($pathArr[1]);
         }
 
@@ -34,14 +40,36 @@ class Router
 
         //Build file path
         $reqPath = APP_ROOT . CONTENT_DIR . '/' . $collection . $path;
-        $reqFile = is_dir($reqPath) ? $reqPath . '/index.json' : $reqPath . '.json'; //To handle nested collections correctly
+        $reqFile = is_dir($reqPath) ? $reqPath . 'index.json' : $reqPath . '.json'; //To handle nested collections correctly
 
         //Render page or 404
         file_exists($reqFile) ? $this->page($reqFile, $collection) : $this->notFound();
     }
 
     /**
-     * Returns a page with the entry data
+     * Renders the blog home page and sets up loop globals
+     */
+
+    private function blog_home() {
+        $tpl = new Template();
+        http_response_code(200);
+
+        //Create a global loop array with entries for use in templates
+        $foundPosts = [];
+        foreach (new \DirectoryIterator(POSTS_DIR) as $fileInfo) {
+            if($fileInfo->isDot()) continue;
+            $foundPosts[] = $fileInfo->getPathname();
+        }
+
+        global $loop, $post;
+        $loop = $foundPosts;
+        $post = (Object) ['title' => 'Blog']; //TODO: Possibly improve. This makes the page title work but maybe it should be a config value
+
+        $tpl->render('index');
+    }
+
+    /**
+     * Renders a page with the entry data
      * @param $entry
      * @param string $collection
      */
@@ -54,9 +82,14 @@ class Router
         if (!$templateToUse) {
             $this->notFound('Collection not mapped to a template');
         } else {
-            $tpl->render($templateToUse, json_decode(file_get_contents($entry)));
-        }
+            //Make data available as global for use in template
+            $data = json_decode(file_get_contents($entry));
+            global $post;
+            $post = $data;
+            $post->path = $entry; //For use with the permalink
 
+            $tpl->render($templateToUse);
+        }
     }
 
     /**
@@ -68,5 +101,4 @@ class Router
         http_response_code(404);
         include(APP_ROOT . TEMPLATE_DIR . '/404.php');
     }
-
 }

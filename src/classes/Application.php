@@ -11,13 +11,17 @@ class Application
         $this->setConfig();
 
         require __DIR__ . '/../includes/debug.php';
-        require __DIR__ . '/../includes/templateTags.php';
+        require __DIR__ . '/../includes/hooks.php';
+        require __DIR__ . '/../includes/template_tags.php';
 
         $router = new Router();
         $router->run();
     }
 
     private function setConfig() {
+        if(!defined('SITE_NAME')) {
+            define('SITE_NAME', 'NetliPress');
+        }
         if(!defined('CONTENT_DIR')) {
             define('CONTENT_DIR', '/content');
         }
@@ -29,6 +33,12 @@ class Application
         }
         if(!defined('TEMPLATE_URI')) {
             define('TEMPLATE_URI', '/theme');
+        }
+        if(!defined('BLOG_HOME')) {
+            define('BLOG_HOME', '/blog');
+        }
+        if(!defined('POSTS_DIR')) {
+            define('POSTS_DIR', APP_ROOT . CONTENT_DIR . '/post');
         }
     }
 }

@@ -11,13 +11,10 @@ class Template
      * @param $template
      * @param $data
      */
-    public function render($template, $data)
+    public function render($template)
     {
         $templateFile = APP_ROOT . TEMPLATE_DIR . '/' . $template . '.php';
         if (file_exists($templateFile)) {
-            //Make data available as global for use in template
-            global $post;
-            $post = $data;
             include($templateFile);
         } else {
             $router = new Router();

@@ -1,0 +1,54 @@
+<?php
+function get_template_part($slug)
+{
+    $templatefile = APP_ROOT . TEMPLATE_DIR . '/' . $slug . '.php';
+    if (file_exists($templatefile)) {
+        include($templatefile);
+    }
+}
+
+function get_template_directory()
+{
+    return TEMPLATE_DIR;
+}
+
+function get_template_directory_uri()
+{
+    return TEMPLATE_URI;
+}
+
+
+function get_header()
+{
+    if (file_exists(APP_ROOT . TEMPLATE_DIR . '/header.php')) {
+        include(APP_ROOT . TEMPLATE_DIR . '/header.php');
+    }
+}
+
+function get_footer()
+{
+    if (file_exists(APP_ROOT . TEMPLATE_DIR . '/footer.php')) {
+        include(APP_ROOT . TEMPLATE_DIR . '/footer.php');
+    }
+}
+
+function render_blocks()
+{
+    foreach ($GLOBALS['post']->sections as $section) {
+        $blockFile = APP_ROOT . TEMPLATE_DIR . '/template-parts/blocks/' . $section->type . '.php';
+        if (file_exists($blockFile)) {
+            global $block;
+            $block = $section;
+            include($blockFile);
+        }
+    }
+}
+
+function the_content()
+{
+    if (empty($GLOBALS['post']->sections)) {
+        echo $GLOBALS['post']->body;
+    } else {
+        render_blocks();
+    }
+}
