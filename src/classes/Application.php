@@ -14,6 +14,8 @@ class Application
         require __DIR__ . '/../includes/hooks.php';
         require __DIR__ . '/../includes/template_tags.php';
 
+        session_start();
+
         $router = new Router();
         $router->run();
     }

@@ -1,5 +1,6 @@
 <?php
 include('tags/acf.php');
+include('tags/forms.php');
 include('tags/wp_media.php');
 include('tags/wp_navigation.php');
 include('tags/wp_post.php');
