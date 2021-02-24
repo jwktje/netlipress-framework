@@ -1,4 +1,5 @@
 <?php
+
 function wp_head() {
     //Page title
     echo '<title>'. SITE_NAME . ' - ' . get_the_title() . "</title>\n\t";

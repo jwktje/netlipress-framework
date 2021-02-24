@@ -18,7 +18,8 @@
   ],
   "minimum-stability": "dev",
   "require": {
-    "erusev/parsedown": "^1.7"
+    "erusev/parsedown": "^1.7",
+    "phpmailer/phpmailer": "dev-master"
   },
   "autoload": {
     "psr-4": {

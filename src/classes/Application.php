@@ -40,5 +40,24 @@ class Application
         if(!defined('POSTS_DIR')) {
             define('POSTS_DIR', APP_ROOT . CONTENT_DIR . '/post');
         }
+        //Mail config
+        if(!defined('MAIL_DIR')) {
+            define('MAIL_DIR', APP_ROOT . CONTENT_DIR . '/mail');
+        }
+        if(!defined('FORM_HANDLE_URL')) {
+            define('FORM_HANDLE_URL', '/handle-form');
+        }
+        if(!defined('MAIL_TO_NAME')) {
+            define('MAIL_TO_NAME', 'NetliPress Recipient');
+        }
+        if(!defined('MAIL_TO_ADDRESS')) {
+            define('MAIL_TO_ADDRESS', 'receiver@netlipress.test');
+        }
+        if(!defined('MAIL_FROM_NAME')) {
+            define('MAIL_FROM_NAME', 'NetliPress Sender');
+        }
+        if(!defined('MAIL_FROM_ADDRESS')) {
+            define('MAIL_FROM_ADDRESS', 'noreply@netlipress.test');
+        }
     }
 }

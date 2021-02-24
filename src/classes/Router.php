@@ -2,6 +2,8 @@
 
 namespace Netlipress;
 
+use Netlipress\Forms;
+
 class Router
 {
 
@@ -19,8 +21,15 @@ class Router
         $req = parse_url($_SERVER['REQUEST_URI']);
 
         //If req path is the blog home, setup the query data and render the post index template
-        if($req['path'] == BLOG_HOME) {
+        if ($req['path'] == BLOG_HOME) {
             $this->blog_home();
+            return;
+        }
+
+        //When POSTing to the form handle URL, pass it over to the form handler
+        if ($req['path'] == FORM_HANDLE_URL && $_SERVER['REQUEST_METHOD'] === "POST") {
+            $formHandler = new Forms();
+            $formHandler->handle();
             return;
         }
 
@@ -28,7 +37,7 @@ class Router
         $pathArr = explode('/', $req['path']);
         $collection = $pathArr[1];
 
-        if(!isset($this->collectionTemplateMapping[$collection])) {
+        if (!isset($this->collectionTemplateMapping[$collection])) {
             //If the first part of the path isn't a mapped collection we assume it's a page
             $collection = 'page';
         } else {
@@ -40,7 +49,7 @@ class Router
 
         //Build file path
         $reqPath = APP_ROOT . CONTENT_DIR . '/' . $collection . $path;
-        $reqFile = is_dir($reqPath) ? $reqPath . 'index.json' : $reqPath . '.json'; //To handle nested collections correctly
+        $reqFile = is_dir($reqPath) ? $reqPath . '/index.json' : $reqPath . '.json'; //To handle nested collections correctly
 
         //Render page or 404
         file_exists($reqFile) ? $this->page($reqFile, $collection) : $this->notFound();
@@ -50,20 +59,21 @@ class Router
      * Renders the blog home page and sets up loop globals
      */
 
-    private function blog_home() {
+    private function blog_home()
+    {
         $tpl = new Template();
         http_response_code(200);
 
         //Create a global loop array with entries for use in templates
         $foundPosts = [];
         foreach (new \DirectoryIterator(POSTS_DIR) as $fileInfo) {
-            if($fileInfo->isDot()) continue;
+            if ($fileInfo->isDot()) continue;
             $foundPosts[] = $fileInfo->getPathname();
         }
 
         global $loop, $post;
         $loop = $foundPosts;
-        $post = (Object) ['title' => 'Blog']; //TODO: Possibly improve. This makes the page title work but maybe it should be a config value
+        $post = (object)['title' => 'Blog']; //TODO: Possibly improve. This makes the page title work but maybe it should be a config value
 
         $tpl->render('index');
     }
