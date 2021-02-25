@@ -8,16 +8,25 @@ use Netlipress\Mail;
 
 class Forms
 {
+    private $FormIndex;
+
     public function __construct()
     {
+        if(isset($_POST['FormIndex'])) {
+            $this->FormIndex = intval($_POST['FormIndex']);
+        }
     }
 
     public function handle()
     {
-        if (!isset($_POST['action'])) {
+        if (!isset($_SESSION['FormAction'][$this->FormIndex])) {
             $this->redirect(['success' => false, 'error' => 'Action not found']);
         }
-        if ($_POST['action'] == 'contact') {
+        //This is so that the form tags know for which index to show errors
+        if(isset($_POST['FormIndex'])) {
+            $_SESSION['FormIndex'] = $this->FormIndex;
+        }
+        if ($_SESSION['FormAction'][$this->FormIndex] === 'contact') {
             $this->contactForm();
         }
     }
@@ -25,8 +34,15 @@ class Forms
     private function redirect($status = [])
     {
         //Build redirect url back to previous page with status as parameters
-        $redirectBaseUrl = explode('?', $_SERVER['HTTP_REFERER'], 2)[0];
-        $redirect = $redirectBaseUrl . '?' . http_build_query($status);
+        $redirect = explode('?', $_SERVER['HTTP_REFERER'], 2)[0];
+
+        //Add query params
+        if (!empty($status)) {
+            $redirect .= '?' . http_build_query($status);
+        }
+
+        //Add form id hash if index was posted
+        $redirect .= '#form-' . $this->FormIndex;
 
         //Perform redirect
         header("Location: $redirect");
@@ -35,27 +51,38 @@ class Forms
 
     private function contactForm()
     {
+
         //Init
         $mail = new Mail();
-        $returnMessage = ['success' => false];
+        $returnMessage = ['success' => false, 'form' => $this->FormIndex];
         $fields = $_POST;
-        $subject = $_POST['subject'] ?? 'Contactform';
-
-        //Remove fields that shouldn't be shown in the email table
-        unset($fields['action']);
-        unset($fields['subject']);
+        $subject = $_SESSION['FormSubject'][$this->FormIndex] ?? 'Contactform';
 
         //Validate based on schema
         $validationErrors = $this->validate();
+
+        //Optionally Validate Recaptcha
+        if(RECAPTCHA) {
+            if(!$this->checkRecaptcha()){
+                $_SESSION['FormOldValues'][$this->FormIndex] = $fields;
+                $returnMessage['error'] = "Recaptcha invalid";
+                $this->redirect($returnMessage);
+            }
+        }
+
+        //Remove fields from table
+        unset($fields['recaptcha_response']);
+        unset($fields['FormIndex']);
+
         if (!empty($validationErrors)) {
             //Errors found to redirect back with errors and old data
-            $_SESSION['FormValidationErrors'] = $validationErrors;
-            $_SESSION['FormOldValues'] = $fields;
-            $this->redirect();
+            $_SESSION['FormValidationErrors'][$this->FormIndex] = $validationErrors;
+            $_SESSION['FormOldValues'][$this->FormIndex] = $fields;
+            $this->redirect($returnMessage);
         }
 
         //If no errors found, build table
-        $body = "<h3>$subject</h3>";
+        $body = "<h1>$subject</h1>";
         $body .= "<table>";
         foreach ($fields as $key => $value) {
             $body .= "<tr>";
@@ -66,7 +93,7 @@ class Forms
         $body .= "</table>";
 
         //Attempt to send email
-        $response = $mail->send($subject, $body);
+        $response = $mail->send($subject, $body, null, null, $fields);
 
         //Check if that worked
         if ($response['success']) {
@@ -84,9 +111,8 @@ class Forms
         //Init array
         $validationErrors = [];
         //Go through schema
-        if (isset($_POST['schema'])) {
-            $schema = json_decode($_POST['schema']);
-            foreach ($schema as $field => $ruleString) {
+        if (isset($_SESSION['FormSchema'][$this->FormIndex])) {
+            foreach ($_SESSION['FormSchema'][$this->FormIndex] as $field => $ruleString) {
                 if (isset($_POST[$field])) {
                     $ruleErrors = $this->checkSchemaRule($_POST[$field], $ruleString);
                     if (!empty($ruleErrors)) {
@@ -102,7 +128,7 @@ class Forms
     {
         $defaultError = 'Error';
 
-        $messages = isset($_POST['messages']) ? (array) json_decode($_POST['messages']) : [];
+        $messages = isset($_SESSION['FormMessages'][$this->FormIndex]) ? $_SESSION['FormMessages'][$this->FormIndex] : [];
 
         $ruleArr = explode('|', $ruleString);
 
@@ -118,5 +144,18 @@ class Forms
                 }
             }
         }
+    }
+
+    private function checkRecaptcha() {
+        // Build POST request:
+        $recaptcha_url = 'https://www.google.com/recaptcha/api/siteverify';
+        $recaptcha_secret = RECAPTCHA_SECRET;
+        $recaptcha_response = $_POST['recaptcha_response'];
+
+        // Make and decode POST request:
+        $recaptcha = file_get_contents($recaptcha_url . '?secret=' . $recaptcha_secret . '&response=' . $recaptcha_response);
+        $recaptcha = json_decode($recaptcha);
+
+        return $recaptcha->score >= 0.5;
     }
 }

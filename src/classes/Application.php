@@ -46,6 +46,9 @@ class Application
         if(!defined('MAIL_DIR')) {
             define('MAIL_DIR', APP_ROOT . CONTENT_DIR . '/mail');
         }
+        if(!defined('MAIL_DIR_PER_SUBJECT')) {
+            define('MAIL_DIR_PER_SUBJECT', false);
+        }
         if(!defined('FORM_HANDLE_URL')) {
             define('FORM_HANDLE_URL', '/handle-form');
         }
@@ -61,5 +64,8 @@ class Application
         if(!defined('MAIL_FROM_ADDRESS')) {
             define('MAIL_FROM_ADDRESS', 'noreply@netlipress.test');
         }
+
+        //Recaptcha
+        define('RECAPTCHA', defined('RECAPTCHA_KEY') && defined('RECAPTCHA_SECRET'));
     }
 }

@@ -1,28 +1,53 @@
 <?php
 
-function form_init($subject, $schema, $messages, $action = 'contact')
+function form_init($subject, $messages, $action = 'contact')
 {
-    global $FormValidationErrors, $FormOldValues;
+    global $FormIndex;
 
-    //TODO: Add recaptcha?
-    $schemaValue = htmlspecialchars(json_encode($schema), ENT_COMPAT);
-    $messagesValue = htmlspecialchars(json_encode($messages), ENT_COMPAT);
-
-    $hiddenFields = "<input type='hidden' name='action' value='$action' />";
-    $hiddenFields .= "<input type='hidden' name='subject' value='$subject' />";
-    $hiddenFields .= "<input type='hidden' name='schema' value='$schemaValue' />";
-    $hiddenFields .= "<input type='hidden' name='messages' value='$messagesValue' />";
-
-    if (isset($_SESSION['FormValidationErrors'])) {
-        $FormValidationErrors = $_SESSION['FormValidationErrors'];
-        unset($_SESSION['FormValidationErrors']);
-    }
-    if (isset($_SESSION['FormOldValues'])) {
-        $FormOldValues = $_SESSION['FormOldValues'];
-        unset($_SESSION['FormOldValues']);
+    if (RECAPTCHA) {
+        recaptcha_output_field();
     }
 
-    echo $hiddenFields;
+    $FormIndex = isset($FormIndex) ? $FormIndex + 1 : 1;
+
+    //Output form index field which gets added to GET as 'form' on redirect
+    echo '<input type="hidden" name="FormIndex" value="' . $FormIndex . '" />';
+    //Output an anchor to redirect to
+    echo '<div class="form-anchor" id="form-' . $FormIndex . '"></div>';
+
+    //Functionality to check if any SESSION parameters where related to this form
+    if (form_redirect_matches()) {
+
+        // If refreshing or navigating to this page, or a submit was successfull
+        // clear session from FormValidationErrors and FormOldValues for only this index
+        if (!isset($_GET['success']) || $_GET['success'] == 1) {
+            unset($_SESSION['FormValidationErrors'][$FormIndex]);
+            unset($_SESSION['FormOldValues'][$FormIndex]);
+        }
+
+        //Output any success and error messages
+        if (form_success()) {
+            echo '<div class="response-message success-message">' . ($messages['success'] ?? 'Success') . '</div>';
+        }
+        if (form_error()) {
+            echo '<div class="response-message error-message">';
+            echo '<strong>' . ($messages['error'] ?? 'Error') . '</strong>';
+            if (form_error() !== ' ') {
+                echo '<div class="error">' . form_error() . '</div>';
+            }
+            echo '</div>';
+        }
+
+    }
+
+    //Set session data
+    $_SESSION['FormAction'][$FormIndex] = $action;
+    if ($messages) {
+        $_SESSION['FormMessages'][$FormIndex] = $messages;
+    }
+    if ($subject) {
+        $_SESSION['FormSubject'][$FormIndex] = $subject ?? 'Subject';
+    }
 }
 
 function form_success()
@@ -37,9 +62,17 @@ function form_error()
     }
 }
 
-function form_field($type, $name, $placeholder)
+function form_field($type, $name, $placeholder, $schema = false)
 {
-    global $FormOldValues;
+    global $FormIndex;
+
+    //Check if validation schema is provided. If so add it to the session
+    if ($schema && !empty($schema)) {
+        if (empty($_SESSION['FormSchema'][$FormIndex])) {
+            $_SESSION['FormSchema'][$FormIndex] = [];
+        }
+        $_SESSION['FormSchema'][$FormIndex][$name] = $schema;
+    }
 
     if ($type == 'textarea') {
         //Build textarea element
@@ -49,18 +82,20 @@ function form_field($type, $name, $placeholder)
         echo "<input type='$type' name='$name' placeholder='$placeholder'";
     }
 
-    //Add old value from session if it exists
-    if (isset($FormOldValues) && isset($FormOldValues[$name])) {
-        if ($type == 'textarea') {
-            echo $FormOldValues[$name];
-        } else {
-            echo " value='" . $FormOldValues[$name] . "'";
+    if (form_redirect_matches()) {
+        //Add old value from session if it exists
+        if (isset($_SESSION['FormOldValues'][$FormIndex]) && isset($_SESSION['FormOldValues'][$FormIndex][$name])) {
+            if ($type == 'textarea') {
+                echo $_SESSION['FormOldValues'][$FormIndex][$name];
+            } else {
+                echo " value='" . $_SESSION['FormOldValues'][$FormIndex][$name] . "'";
+            }
         }
-    }
 
-    //Error class
-    if (form_field_error_key($name) !== false) {
-        echo " class='has-error'";
+        //Error class
+        if (form_field_error_key($name) !== false) {
+            echo " class='has-error'";
+        }
     }
 
     //Close out element
@@ -70,15 +105,17 @@ function form_field($type, $name, $placeholder)
         echo " />";
     }
 
-    //Possibly output error
-    form_field_error($name);
+    if (form_redirect_matches()) {
+        //Possibly output error
+        form_field_error($name);
+    }
 }
 
 function form_field_error_key($name)
 {
-    global $FormValidationErrors;
-    if (isset($FormValidationErrors)) {
-        return array_search($name, array_column($FormValidationErrors, 'field'));
+    global $FormIndex;
+    if (isset($_SESSION['FormValidationErrors'][$FormIndex])) {
+        return array_search($name, array_column($_SESSION['FormValidationErrors'][$FormIndex], 'field'));
     } else {
         return false;
     }
@@ -86,9 +123,15 @@ function form_field_error_key($name)
 
 function form_field_error($name)
 {
-    global $FormValidationErrors;
+    global $FormIndex;
     $key = form_field_error_key($name);
     if ($key !== false) {
-        echo "<div class='validation-error'>" . $FormValidationErrors[$key]['error'] . "</div>";
+        echo "<div class='validation-error'>" . $_SESSION['FormValidationErrors'][$FormIndex][$key]['error'] . "</div>";
     }
+}
+
+function form_redirect_matches()
+{
+    global $FormIndex;
+    return isset($_SESSION['FormIndex']) && $FormIndex === intval($_SESSION['FormIndex']);
 }
