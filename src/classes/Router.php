@@ -108,6 +108,9 @@ class Router
      */
     public function notFound($error = '')
     {
+        global $is404, $post;
+        $post = (object) ['title' => '404']; //TODO: Possibly improve. Just to make header title work on 404
+        $is404 = true;
         http_response_code(404);
         include(APP_ROOT . TEMPLATE_DIR . '/404.php');
     }

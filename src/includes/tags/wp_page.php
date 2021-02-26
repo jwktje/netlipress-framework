@@ -52,3 +52,8 @@ function the_content()
         render_blocks();
     }
 }
+
+function is_404() {
+    global $is404;
+    return $is404;
+}
