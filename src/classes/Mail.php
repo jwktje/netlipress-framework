@@ -3,6 +3,7 @@
 namespace Netlipress;
 
 use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
 
 class Mail
 {
@@ -11,12 +12,23 @@ class Mail
     private $fromAddress;
     private $fromName;
 
+    private $SMTP = false;
+    private $SMTPDebug = false;
+    private $port;
+
     public function __construct()
     {
         $this->toName = MAIL_TO_NAME;
         $this->toAddress = MAIL_TO_ADDRESS;
         $this->fromName = MAIL_FROM_NAME;
         $this->fromAddress = MAIL_FROM_ADDRESS;
+
+        if (defined('SMTP_HOST') && defined('SMTP_USER') && defined('SMTP_PASSWORD')) {
+            $this->SMTP = true;
+            $this->port = defined('SMTP_PORT') ? SMTP_PORT : 587;
+            $this->SMTPDebug = defined('SMTP_DEBUG') ? SMTP_DEBUG : false;
+        }
+
     }
 
     public function test($toAddress)
@@ -33,8 +45,28 @@ class Mail
         //Put body inside mail template
         $body = $this->parseEmailTemplate($body);
 
-        //Build mail object
+        //New mail
         $mail = new PHPMailer();
+
+        //Check for SMTP
+        if ($this->SMTP) {
+            if ($this->SMTPDebug) {
+                //Enable verbose debug output
+                $mail->SMTPDebug = SMTP::DEBUG_SERVER;
+            }
+            $mail->isSMTP();
+            $mail->Host = SMTP_HOST;
+            //Enable SMTP authentication
+            $mail->SMTPAuth = true;
+            $mail->Username = SMTP_USER;
+            $mail->Password = SMTP_PASSWORD;
+            //Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            //TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
+            $mail->Port = $this->port;
+        }
+
+        //Fill mail instance
         $mail->setFrom($this->fromAddress, $this->fromName);
         $mail->addAddress($this->toAddress, $this->toName);
         $mail->isHTML(true);

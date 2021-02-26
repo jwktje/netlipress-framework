@@ -46,7 +46,7 @@ function form_init($subject, $messages, $action = 'contact')
         $_SESSION['FormMessages'][$FormIndex] = $messages;
     }
     if ($subject) {
-        $_SESSION['FormSubject'][$FormIndex] = $subject ?? 'Subject';
+        $_SESSION['FormSubject'][$FormIndex] = $subject;
     }
 }
 

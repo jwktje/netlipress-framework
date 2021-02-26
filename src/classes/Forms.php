@@ -99,6 +99,7 @@ class Forms
         if ($response['success']) {
             $returnMessage['success'] = true;
         } else {
+            //TODO: Maybe move error out of the URL and into the SESSION
             $returnMessage['error'] = $response['message'];
         }
 

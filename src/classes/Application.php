@@ -21,9 +21,11 @@ class Application
     }
 
     private function setConfig() {
+        //Site name
         if(!defined('SITE_NAME')) {
             define('SITE_NAME', 'NetliPress');
         }
+        //Directories
         if(!defined('CONTENT_DIR')) {
             define('CONTENT_DIR', '/content');
         }
@@ -41,6 +43,10 @@ class Application
         }
         if(!defined('POSTS_DIR')) {
             define('POSTS_DIR', APP_ROOT . CONTENT_DIR . '/post');
+        }
+        //Template assets
+        if(!defined('USE_MIX')) {
+            define('USE_MIX', false);
         }
         //Mail config
         if(!defined('MAIL_DIR')) {
