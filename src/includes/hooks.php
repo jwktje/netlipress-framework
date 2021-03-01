@@ -15,6 +15,7 @@ function wp_head()
     } else {
         echo '<link rel="stylesheet" href="/theme/style.css">';
     }
+    echo "\n\n";
 
     //GTM optional include
     if(GTM_ACTIVE) {

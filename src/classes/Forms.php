@@ -114,11 +114,9 @@ class Forms
         //Go through schema
         if (isset($_SESSION['FormSchema'][$this->FormIndex])) {
             foreach ($_SESSION['FormSchema'][$this->FormIndex] as $field => $ruleString) {
-                if (isset($_POST[$field])) {
-                    $ruleErrors = $this->checkSchemaRule($_POST[$field], $ruleString);
-                    if (!empty($ruleErrors)) {
-                        $validationErrors[] = ['field' => $field, 'error' => $ruleErrors];
-                    }
+                $ruleErrors = $this->checkSchemaRule($_POST[$field], $ruleString);
+                if (!empty($ruleErrors)) {
+                    $validationErrors[] = ['field' => $field, 'error' => $ruleErrors['error'], 'rule' => $ruleErrors['rule']];
                 }
             }
         }
@@ -136,12 +134,12 @@ class Forms
         foreach ($ruleArr as $rule) {
             if ($rule == 'required') {
                 if (empty($value)) {
-                    return $messages[$rule] ?? $defaultError;
+                    return ['error' => $messages[$rule] ?? $defaultError, 'rule' => 'required'];
                 }
             }
             if ($rule == 'email') {
                 if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
-                    return $messages[$rule] ?? $defaultError;
+                    return ['error' => $messages[$rule] ?? $defaultError, 'rule' => 'invalid'];
                 }
             }
         }

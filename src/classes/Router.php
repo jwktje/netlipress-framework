@@ -17,6 +17,15 @@ class Router
         $request = parse_url($_SERVER['REQUEST_URI']);
         $requestedFile = pathinfo(($request['path']));
 
+        //If req path root, render the frontpage
+        if ($request['path'] == '/') {
+            $frontPageFile = APP_ROOT . CONTENT_DIR . '/page/index.json';
+            if(file_exists($frontPageFile)) {
+                $this->front_page($frontPageFile);
+                return;
+            }
+        }
+
         //If req path is the blog home, setup the query data and render the post index template
         if ($request['path'] == BLOG_HOME) {
             $this->blog_home();
@@ -67,6 +76,9 @@ class Router
 
         //Build file path
         $reqPath = APP_ROOT . CONTENT_DIR . '/' . $collection . $path;
+        //Remove trailing slash if present
+        $reqPath = rtrim($reqPath,"/");
+        //Build path to file
         $reqFile = is_dir($reqPath) ? $reqPath . '/index.json' : $reqPath . '.json'; //To handle nested collections correctly
 
         //Render page or 404
@@ -113,6 +125,20 @@ class Router
     }
 
     /**
+     * Renders the static front page
+     */
+
+    private function front_page($entry) {
+        $tpl = new Template();
+        http_response_code(200);
+
+        $template = file_exists(APP_ROOT . TEMPLATE_DIR . '/front-page.php') ? 'front-page' : 'page';
+        global $post;
+        $post = get_post($entry);
+        $tpl->render($template);
+    }
+
+    /**
      * Renders the blog home page and sets up loop globals
      */
 
@@ -155,19 +181,10 @@ class Router
         if (!$templateToUse) {
             $this->notFound('Collection not mapped to a template');
         } else {
-            //Make data available as global for use in template
-            $data = json_decode(file_get_contents($entry));
-
             global $post, $originalPost;
-            $post = $data;
-
-            //Define extra meta about this entry
-            $post->path = $entry; //For use with the permalink
-            $post->post_type = $collection; //for use in templates for conditional rendering
-
+            $post = get_post($entry);
             //Save post for resetting
             $originalPost = $post;
-
             $tpl->render($templateToUse);
         }
     }

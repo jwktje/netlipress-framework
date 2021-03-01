@@ -12,15 +12,15 @@ function gtm_head()
             j.async = true;
             j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
             f.parentNode.insertBefore(j, f);
-        })(window, document, 'script', 'dataLayer', '<?=GTM_CONTAINER_ID;?>');</script>
+        })(window, document, 'script', 'dataLayer', '<?=GTM_CONTAINER_ID;?>');
+    </script>
     <!-- End Google Tag Manager -->
     <?php
 }
 
 function gtm_body()
-{
-    ?>
-    <!-- Google Tag Manager (noscript) -->
+{?>
+<!-- Google Tag Manager (noscript) -->
     <noscript>
         <iframe src="https://www.googletagmanager.com/ns.html?id=<?= GTM_CONTAINER_ID; ?>"
                 height="0" width="0" style="display:none;visibility:hidden"></iframe>

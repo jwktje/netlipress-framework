@@ -21,19 +21,27 @@ function form_init($subject, $messages, $action = 'contact')
         // If refreshing or navigating to this page, or a submit was successfull
         // clear session from FormValidationErrors and FormOldValues for only this index
         if (!isset($_GET['success']) || $_GET['success'] == 1) {
+            unset($_SESSION['FormAction'][$FormIndex]);
+            unset($_SESSION['FormMessages'][$FormIndex]);
+            unset($_SESSION['FormSubject'][$FormIndex]);
+            unset($_SESSION['FormSchema'][$FormIndex]);
             unset($_SESSION['FormValidationErrors'][$FormIndex]);
             unset($_SESSION['FormOldValues'][$FormIndex]);
         }
 
         //Output any success and error messages
         if (form_success()) {
-            echo '<div class="response-message success-message">' . ($messages['success'] ?? 'Success') . '</div>';
+            echo '<div class="response-message success-message"><div class="check">' . ($messages['success'] ?? 'Success') . '</div></div>';
         }
         if (form_error()) {
             echo '<div class="response-message error-message">';
-            echo '<strong>' . ($messages['error'] ?? 'Error') . '</strong>';
+            if(isset($messages['error'])) {
+                echo '<strong>' . $messages['error'] . '</strong>';
+            }
             if (form_error() !== ' ') {
                 echo '<div class="error">' . form_error() . '</div>';
+            } else {
+                form_output_unique_validation_errors();
             }
             echo '</div>';
         }
@@ -62,7 +70,7 @@ function form_error()
     }
 }
 
-function form_field($type, $name, $placeholder, $schema = false)
+function form_field($type, $name, $placeholder, $schema = false, $outputValidationError = true)
 {
     global $FormIndex;
 
@@ -76,10 +84,23 @@ function form_field($type, $name, $placeholder, $schema = false)
 
     if ($type == 'textarea') {
         //Build textarea element
+        if(strpos($schema, 'required') !== false) {
+            $placeholder .= ' *';
+        }
         echo "<textarea name='$name' placeholder='$placeholder'>";
+    } elseif ($type == 'checkbox') {
+        //Wrap in label
+        echo "<label>";
+        echo "<input type='$type' name='$name'";
     } else {
         //Build input element
-        echo "<input type='$type' name='$name' placeholder='$placeholder'";
+        echo "<input type='$type' name='$name'";
+        if ($placeholder) {
+            if(strpos($schema, 'required') !== false) {
+                $placeholder .= ' *';
+            }
+            echo " placeholder='$placeholder'";
+        }
     }
 
     if (form_redirect_matches()) {
@@ -101,13 +122,20 @@ function form_field($type, $name, $placeholder, $schema = false)
     //Close out element
     if ($type == 'textarea') {
         echo "</textarea>";
+    } elseif($type == 'checkbox') {
+        echo " />";
+        echo $placeholder ?? '';
+        if(strpos($schema, 'required') !== false) {
+            echo ' *';
+        }
+        echo "</label>";
     } else {
         echo " />";
     }
 
     if (form_redirect_matches()) {
         //Possibly output error
-        form_field_error($name);
+        form_field_error($name,$outputValidationError);
     }
 }
 
@@ -121,12 +149,18 @@ function form_field_error_key($name)
     }
 }
 
-function form_field_error($name)
+function form_field_error($name, $outputValidationError)
 {
     global $FormIndex;
     $key = form_field_error_key($name);
     if ($key !== false) {
-        echo "<div class='validation-error'>" . $_SESSION['FormValidationErrors'][$FormIndex][$key]['error'] . "</div>";
+        $class = 'validation-error ';
+        $class .= $_SESSION['FormValidationErrors'][$FormIndex][$key]['rule'] ?? '';
+        echo "<div class='$class'>";
+        if($outputValidationError) {
+            $_SESSION['FormValidationErrors'][$FormIndex][$key]['error'];
+        }
+        echo "</div>";
     }
 }
 
@@ -134,4 +168,17 @@ function form_redirect_matches()
 {
     global $FormIndex;
     return isset($_SESSION['FormIndex']) && $FormIndex === intval($_SESSION['FormIndex']);
+}
+
+function form_output_unique_validation_errors() {
+    global $FormIndex;
+    $errors = [];
+    foreach($_SESSION['FormValidationErrors'][$FormIndex] as $item) {
+        if(!in_array($item['error'], $errors)) {
+            $errors[] = $item['error'];
+            echo "<div class='" . $item['rule'] . "'>";
+            echo $item['error'];
+            echo "</div>";
+        }
+    }
 }
