@@ -30,20 +30,30 @@ function gtm_body()
 }
 
 
-function recaptcha_hide_badge()
+function recaptcha_hide_badge($lang = 'en')
 {
+    if($lang == 'en') :
     ?>
-    <div class="attribution">
-        This site is protected by reCAPTCHA and the Google
-        <a href="https://policies.google.com/privacy">Privacy Policy</a> and
-        <a href="https://policies.google.com/terms">Terms of Service</a> apply.
-    </div>
+        <div class="attribution">
+            This site is protected by reCAPTCHA and the Google
+            <a href="https://policies.google.com/privacy">Privacy Policy</a> and
+            <a href="https://policies.google.com/terms">Terms of Service</a> apply.
+        </div>
+    <?php
+    elseif($lang == 'nl') :
+    ?>
+        <div class="attribution">
+            Deze site wordt beschermd door reCAPTCHA en het Google
+            <a href="https://policies.google.com/privacy">Privacybeleid</a> en
+            <a href="https://policies.google.com/terms">Servicevoorwaarden</a> zijn van toepassing.
+        </div>
+    <?php endif;?>
     <style>
         .grecaptcha-badge {
             visibility: hidden;
         }
     </style>
-    <?php
+
 }
 
 function recaptcha_output_field()
