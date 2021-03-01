@@ -61,22 +61,47 @@ function get_posts($args = [])
 
     //Sort options
     //TODO: More sort options?
-    if($args['orderby'] == 'date') {
+    if ($args['orderby'] == 'date') {
         $sort = $args['order'] == 'DESC' ? SORT_DESC : SORT_ASC;
-        array_multisort(array_map('filectime',$files), $sort, $files);
+        array_multisort(array_map('filectime', $files), $sort, $files);
     }
-    if($args['orderby'] == 'rand') {
+    if ($args['orderby'] == 'rand') {
         shuffle($files);
     }
-    if($args['numberposts'] !== -1) {
+    if ($args['numberposts'] !== -1) {
         $files = array_slice($files, 0, $args['numberposts']);
     }
 
     return $files;
 }
 
-function get_post($file) {
+function get_post($file)
+{
     $data = json_decode(file_get_contents($file));
     $data->path = $file;
+    //This turns the absolute path into a relative path, and then calls a static router function to filter out which collection we're handling
+    $data->post_type = \Netlipress\Router::getCollectionFromRequestPath(str_replace(APP_ROOT . CONTENT_DIR,'',$file));
     return $data;
+}
+
+function setup_postdata($entry)
+{
+    global $post;
+    $post = get_post($entry);
+}
+
+function wp_reset_postdata()
+{
+    global $post, $originalPost;
+    $post = $originalPost;
+}
+
+function wp_trim_words( string $text, int $num_words = 55, string $more = null ) {
+    $words_array = explode(' ', $text);
+    $words_array = array_slice($words_array, 0, $num_words);
+    $text = implode(' ', $words_array);
+    if($more) {
+        $text .= $more;
+    }
+    return $text;
 }

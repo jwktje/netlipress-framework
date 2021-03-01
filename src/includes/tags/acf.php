@@ -39,6 +39,7 @@ function get_field($fieldName, $from = false)
         }
         return $GLOBALS['block']->{$fieldName};
     }
+
     if (!empty($GLOBALS['post']->{$fieldName})) {
         if ($formatter->shouldFormatField(false, $fieldName, $GLOBALS['post']->post_type)) {
             return $formatter->formatField(false, $fieldName, $GLOBALS['post']->{$fieldName}, $GLOBALS['post']->post_type);

@@ -3,6 +3,7 @@
 namespace Netlipress;
 
 use Netlipress\Forms;
+use Netlipress\ImageResizer;
 
 class Router
 {
@@ -13,34 +14,55 @@ class Router
     public function run()
     {
         //Parse the incoming request
-        $req = parse_url($_SERVER['REQUEST_URI']);
+        $request = parse_url($_SERVER['REQUEST_URI']);
+        $requestedFile = pathinfo(($request['path']));
 
         //If req path is the blog home, setup the query data and render the post index template
-        if ($req['path'] == BLOG_HOME) {
+        if ($request['path'] == BLOG_HOME) {
             $this->blog_home();
             return;
         }
 
         //When POSTing to the form handle URL, pass it over to the form handler
-        if ($req['path'] == FORM_HANDLE_URL && $_SERVER['REQUEST_METHOD'] === "POST") {
+        if ($request['path'] == FORM_HANDLE_URL && $_SERVER['REQUEST_METHOD'] === "POST") {
             $formHandler = new Forms();
             $formHandler->handle();
             return;
         }
 
-        //Use first part of the path for collection matching
-        $pathArr = explode('/', $req['path']);
-        $collection = $pathArr[1];
-        $knownCollections = $this->getKnownCollections();
-
-        if (!in_array($collection, $knownCollections)) {
-            //If the first part of the path isn't a known collection we assume it's a page
-            $collection = 'page';
-        } else {
-            //Remove first part from the array because it's the collection base slug
-            unset($pathArr[1]);
+        //Handle resized image requests
+        if(isset($requestedFile['extension']) && in_array($requestedFile['extension'],['jpg','png']) && strpos($request['query'], 'size') !== false) {
+            parse_str($request['query'],$query);
+            if(isset($query['size'])) {
+                $sizes = explode('x',$query['size']);
+                //This returns an image scaled by the server on the fly
+                $image = new ImageResizer($request['path']);
+                $image->resizeImage($sizes[0],$sizes[1]);
+                return;
+            }
         }
 
+        //Handle request for a page in a collection by default. Returns 404 if entry doesn't exist
+        $this->handleCollectionRequest($request);
+
+    }
+
+    /**
+     * Render a page for an entry in a collection
+     */
+
+    private function handleCollectionRequest($request) {
+        //Make a path array
+        $pathArr = explode('/', $request['path']);
+
+        //Get collection
+        $collection = $this->getCollectionFromRequestPath($request['path']);
+
+        if($collection !== 'page') {
+            //Remove first part from the array because it's the collection base slug, and we already have this as a separate var.
+            unset($pathArr[1]);
+        }
+        //Rebuild path without collection
         $path = implode('/', $pathArr);
 
         //Build file path
@@ -52,10 +74,28 @@ class Router
     }
 
     /**
+     * Get collection from Request
+     */
+
+    public static function getCollectionFromRequestPath($requestPath) {
+
+        $pathArr = explode('/', $requestPath);
+        $collection = $pathArr[1];
+        $knownCollections = self::getKnownCollections();
+
+        if (!in_array($collection, $knownCollections)) {
+            //If the first part of the path isn't a known collection we assume it's a page
+            $collection = 'page';
+        }
+
+        return $collection;
+    }
+
+    /**
      * Gets all collections that are defined in the content folder
      */
 
-    private function getKnownCollections()
+    private static function getKnownCollections()
     {
         $collections = [];
         //Core collections without single
@@ -117,12 +157,16 @@ class Router
         } else {
             //Make data available as global for use in template
             $data = json_decode(file_get_contents($entry));
-            global $post;
+
+            global $post, $originalPost;
             $post = $data;
 
             //Define extra meta about this entry
             $post->path = $entry; //For use with the permalink
             $post->post_type = $collection; //for use in templates for conditional rendering
+
+            //Save post for resetting
+            $originalPost = $post;
 
             $tpl->render($templateToUse);
         }
