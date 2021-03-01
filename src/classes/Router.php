@@ -7,11 +7,6 @@ use Netlipress\Forms;
 class Router
 {
 
-    private $collectionTemplateMapping = [
-        'page' => 'page',
-        'post' => 'single',
-    ];
-
     /**
      * Handles the route
      */
@@ -36,9 +31,10 @@ class Router
         //Use first part of the path for collection matching
         $pathArr = explode('/', $req['path']);
         $collection = $pathArr[1];
+        $knownCollections = $this->getKnownCollections();
 
-        if (!isset($this->collectionTemplateMapping[$collection])) {
-            //If the first part of the path isn't a mapped collection we assume it's a page
+        if (!in_array($collection, $knownCollections)) {
+            //If the first part of the path isn't a known collection we assume it's a page
             $collection = 'page';
         } else {
             //Remove first part from the array because it's the collection base slug
@@ -53,6 +49,27 @@ class Router
 
         //Render page or 404
         file_exists($reqFile) ? $this->page($reqFile, $collection) : $this->notFound();
+    }
+
+    /**
+     * Gets all collections that are defined in the content folder
+     */
+
+    private function getKnownCollections()
+    {
+        $collections = [];
+        //Core collections without single
+        $excluded = ['menu','settings'];
+
+        //Get paths
+        $dirs = array_filter(glob(APP_ROOT . CONTENT_DIR . '/*'), 'is_dir');
+        foreach($dirs as $dir) {
+            $dirSlug = str_replace(APP_ROOT . CONTENT_DIR . '/', '', $dir);
+            if(!in_array($dirSlug, $excluded)) {
+                $collections[] = $dirSlug;
+            }
+        }
+        return $collections;
     }
 
     /**
@@ -87,7 +104,13 @@ class Router
     {
         $tpl = new Template();
         http_response_code(200);
-        $templateToUse = $this->collectionTemplateMapping[$collection];
+        if ($collection == 'page') {
+            $templateToUse = 'page';
+        } elseif ($collection == 'post') {
+            $templateToUse = 'single';
+        } else {
+            $templateToUse = 'single-' . $collection;
+        }
 
         if (!$templateToUse) {
             $this->notFound('Collection not mapped to a template');
@@ -96,7 +119,10 @@ class Router
             $data = json_decode(file_get_contents($entry));
             global $post;
             $post = $data;
+
+            //Define extra meta about this entry
             $post->path = $entry; //For use with the permalink
+            $post->post_type = $collection; //for use in templates for conditional rendering
 
             $tpl->render($templateToUse);
         }
@@ -109,7 +135,7 @@ class Router
     public function notFound($error = '')
     {
         global $is404, $post;
-        $post = (object) ['title' => '404']; //TODO: Possibly improve. Just to make header title work on 404
+        $post = (object)['title' => '404']; //TODO: Possibly improve. Just to make header title work on 404
         $is404 = true;
         http_response_code(404);
         include(APP_ROOT . TEMPLATE_DIR . '/404.php');

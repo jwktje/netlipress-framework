@@ -73,5 +73,8 @@ class Application
 
         //Recaptcha
         define('RECAPTCHA', defined('RECAPTCHA_KEY') && defined('RECAPTCHA_SECRET'));
+
+        //GTM
+        define('GTM_ACTIVE', defined('GTM_CONTAINER_ID'));
     }
 }

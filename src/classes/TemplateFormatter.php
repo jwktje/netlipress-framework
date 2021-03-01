@@ -18,12 +18,20 @@ class TemplateFormatter
     public function shouldFormatField($area, $fieldName, $collection = 'page')
     {
         $casts = $this->getCastsConfig();
+        if($collection === 'sections') {
+            if (
+                $casts &&
+                isset($casts->{$collection}) &&
+                isset($casts->{$collection}->{$area}) &&
+                isset($casts->{$collection}->{$area}->{$fieldName})) {
+                return $casts->{$collection}->{$area}->{$fieldName};
+            }
+        }
         if (
             $casts &&
             isset($casts->{$collection}) &&
-            isset($casts->{$collection}->{$area}) &&
-            isset($casts->{$collection}->{$area}->{$fieldName})) {
-            return $casts->{$collection}->{$area}->{$fieldName};
+            isset($casts->{$collection}->{$fieldName})) {
+            return $casts->{$collection}->{$fieldName};
         }
         return false;
     }

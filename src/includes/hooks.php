@@ -15,6 +15,18 @@ function wp_head()
     } else {
         echo '<link rel="stylesheet" href="/theme/style.css">';
     }
+
+    //GTM optional include
+    if(GTM_ACTIVE) {
+        gtm_head();
+    }
+}
+
+function wp_body_open() {
+    //GTM optional include
+    if(GTM_ACTIVE) {
+        gtm_body();
+    }
 }
 
 function wp_footer()

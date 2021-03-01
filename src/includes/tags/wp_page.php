@@ -32,6 +32,10 @@ function get_footer()
     }
 }
 
+function body_class() {
+    echo ''; //TODO: Implement body classes?
+}
+
 function render_blocks()
 {
     foreach ($GLOBALS['post']->sections as $section) {
@@ -47,7 +51,7 @@ function render_blocks()
 function the_content()
 {
     if (empty($GLOBALS['post']->sections)) {
-        echo $GLOBALS['post']->body;
+        the_field('body');
     } else {
         render_blocks();
     }

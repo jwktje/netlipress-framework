@@ -1,6 +1,6 @@
 <?php
 include('tags/acf.php');
-include('tags/recaptcha.php');
+include('tags/google.php');
 include('tags/forms.php');
 include('tags/wp_media.php');
 include('tags/wp_navigation.php');
