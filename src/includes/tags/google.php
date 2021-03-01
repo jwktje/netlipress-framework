@@ -53,7 +53,7 @@ function recaptcha_hide_badge($lang = 'en')
             visibility: hidden;
         }
     </style>
-
+    <?php
 }
 
 function recaptcha_output_field()
