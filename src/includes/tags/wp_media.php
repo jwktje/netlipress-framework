@@ -1,15 +1,21 @@
 <?php
 
-function wp_get_attachment_image($url, $size = 'full')
+function wp_get_attachment_image_uri($url)
 {
-    if (!$url) return;
-    if(substr($url, 0, strlen(PUBLIC_DIR)) === PUBLIC_DIR) {
+    if (substr($url, 0, strlen(PUBLIC_DIR)) === PUBLIC_DIR) {
         //Remove public dir from base of URL
         $url = substr($url, strlen(PUBLIC_DIR));
     }
+    return $url;
+}
+
+function wp_get_attachment_image($url, $size = 'full')
+{
+    if (!$url) return;
+    $url = wp_get_attachment_image_uri($url);
     $alt = basename($url);
 
-    if($size == 'thumb') {
+    if ($size == 'thumb') {
         $url .= '?size=150x150';
         $sizes = 'width="150" height="150"';
     } else {
@@ -21,7 +27,7 @@ function wp_get_attachment_image($url, $size = 'full')
 
 function output_link($link, $class = '')
 {
-    $link = (object) $link;
+    $link = (object)$link;
     if (empty($link->url)) return;
 
     $url = $link->url ?? '#0';

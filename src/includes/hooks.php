@@ -17,6 +17,9 @@ function wp_head()
     }
     echo "\n\n";
 
+    //OpenGraph
+    output_og_tags();
+
     //GTM optional include
     if(GTM_ACTIVE) {
         gtm_head();
