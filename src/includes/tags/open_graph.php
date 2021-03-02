@@ -20,5 +20,5 @@ function output_og_tags() {
         echo "\t<meta property='og:image' content='$image' />";
     }
 
-    echo "\n\n";
+    echo "\n";
 }

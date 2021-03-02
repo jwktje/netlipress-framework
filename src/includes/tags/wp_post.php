@@ -107,7 +107,16 @@ function wp_trim_words( string $text, int $num_words = 55, string $more = null )
 }
 
 function home_url() {
-    $base = $_SERVER['HTTPS'] ? 'https' : 'http';
+    //Check protocol
+    $isSecure = false;
+    if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
+        $isSecure = true;
+    }
+    elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on') {
+        $isSecure = true;
+    }
+    //Build full URL
+    $base = $isSecure ? 'https' : 'http';
     $base .= '://' . $_SERVER['SERVER_NAME'];
     return $base;
 }
