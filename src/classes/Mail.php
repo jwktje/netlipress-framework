@@ -59,7 +59,7 @@ class Mail
             }
             if ($this->SMTP_tls) {
                 //Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             } else {
                 $mail->SMTPAutoTLS = false;
                 $mail->SMTPSecure = false;
