@@ -7,7 +7,7 @@ function output_og_tags() {
 
     //Optional description tag
     if($desc = get_field('social_desc')) {
-        echo "\t<meta property='og:description' content='$title' />\n";
+        echo "\t<meta property='og:description' content='$desc' />\n";
     }
 
     //Optional image tag with fallback to home
