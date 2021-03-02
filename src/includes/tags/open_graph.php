@@ -15,7 +15,8 @@ function output_og_tags() {
     $imageHome = get_field('social_image',APP_ROOT . CONTENT_DIR . '/page/index.json');
     $image = empty($image) ? $imageHome : $image;
     if(!empty($image)) {
-        $image = wp_get_attachment_image_uri($image);
+
+        $image = home_url() . wp_get_attachment_image_uri($image);
         echo "\t<meta property='og:image' content='$image' />";
     }
 

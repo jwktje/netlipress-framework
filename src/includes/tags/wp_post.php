@@ -105,3 +105,9 @@ function wp_trim_words( string $text, int $num_words = 55, string $more = null )
     }
     return $text;
 }
+
+function home_url() {
+    $base = $_SERVER['HTTPS'] ? 'https' : 'http';
+    $base .= '://' . $_SERVER['SERVER_NAME'];
+    return $base;
+}
