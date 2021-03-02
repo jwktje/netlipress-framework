@@ -101,7 +101,7 @@ class Mail
     private function saveMailToFS($subject, $body, $toAddress, $toName, $rawFormFields = false)
     {
         $date = date("d-m-Y H:i:s");
-        $filename = $toName . ' - ' . $date;
+        $filename = $toAddress . ' - ' . $date;
 
         $mailData = [
             'email' => $toAddress,
