@@ -35,7 +35,7 @@ function form_init($subject, $messages, $action = 'contact')
         }
         if (form_error()) {
             echo '<div class="response-message error-message">';
-            if(isset($messages['error'])) {
+            if (isset($messages['error'])) {
                 echo '<strong>' . $messages['error'] . '</strong>';
             }
             if (form_error() !== ' ') {
@@ -70,7 +70,7 @@ function form_error()
     }
 }
 
-function form_field($type, $name, $placeholder, $schema = false, $outputValidationError = true)
+function form_field_append_schema($name, $schema)
 {
     global $FormIndex;
 
@@ -82,21 +82,25 @@ function form_field($type, $name, $placeholder, $schema = false, $outputValidati
         $_SESSION['FormSchema'][$FormIndex][$name] = $schema;
     }
 
+}
+
+function form_field($type, $name, $placeholder, $schema = false, $outputValidationError = true)
+{
+    global $FormIndex;
+
+    form_field_append_schema($name, $schema);
+
     if ($type == 'textarea') {
         //Build textarea element
-        if(strpos($schema, 'required') !== false) {
+        if (strpos($schema, 'required') !== false) {
             $placeholder .= ' *';
         }
         echo "<textarea name='$name' placeholder='$placeholder'>";
-    } elseif ($type == 'checkbox') {
-        //Wrap in label
-        echo "<label>";
-        echo "<input type='$type' name='$name'";
     } else {
         //Build input element
         echo "<input type='$type' name='$name'";
         if ($placeholder) {
-            if(strpos($schema, 'required') !== false) {
+            if (strpos($schema, 'required') !== false) {
                 $placeholder .= ' *';
             }
             echo " placeholder='$placeholder'";
@@ -122,20 +126,47 @@ function form_field($type, $name, $placeholder, $schema = false, $outputValidati
     //Close out element
     if ($type == 'textarea') {
         echo "</textarea>";
-    } elseif($type == 'checkbox') {
-        echo " />";
-        echo $placeholder ?? '';
-        if(strpos($schema, 'required') !== false) {
-            echo ' *';
-        }
-        echo "</label>";
     } else {
-        echo " />";
+        echo " />\n";
     }
 
     if (form_redirect_matches()) {
         //Possibly output error
-        form_field_error($name,$outputValidationError);
+        form_field_error($name, $outputValidationError);
+    }
+}
+
+function form_field_checkbox($name, $value, $labelText, $schema = false, $outputValidationError = true)
+{
+    global $FormIndex;
+    form_field_append_schema($name, $schema);
+
+    //Wrap in label
+    echo "<label>";
+    echo "<input type='checkbox' name='$name' value='$value'";
+
+    if (form_redirect_matches()) {
+        //Add old value from session if it exists
+        if (isset($_SESSION['FormOldValues'][$FormIndex]) && isset($_SESSION['FormOldValues'][$FormIndex][$name])) {
+            echo " checked='true'";
+        }
+        //Error class
+        if (form_field_error_key($name) !== false) {
+            echo " class='has-error'";
+        }
+    }
+
+    //Close elements
+    echo " />";
+    echo $labelText ?? '';
+    if (strpos($schema, 'required') !== false) {
+        echo ' *';
+    }
+    echo "</label>\n";
+
+    if (form_redirect_matches()) {
+        //Possibly output error
+        form_field_error($name, $outputValidationError);
     }
 }
 
@@ -157,7 +188,7 @@ function form_field_error($name, $outputValidationError)
         $class = 'validation-error ';
         $class .= $_SESSION['FormValidationErrors'][$FormIndex][$key]['rule'] ?? '';
         echo "<div class='$class'>";
-        if($outputValidationError) {
+        if ($outputValidationError) {
             $_SESSION['FormValidationErrors'][$FormIndex][$key]['error'];
         }
         echo "</div>";
@@ -170,11 +201,12 @@ function form_redirect_matches()
     return isset($_SESSION['FormIndex']) && $FormIndex === intval($_SESSION['FormIndex']);
 }
 
-function form_output_unique_validation_errors() {
+function form_output_unique_validation_errors()
+{
     global $FormIndex;
     $errors = [];
-    foreach($_SESSION['FormValidationErrors'][$FormIndex] as $item) {
-        if(!in_array($item['error'], $errors)) {
+    foreach ($_SESSION['FormValidationErrors'][$FormIndex] as $item) {
+        if (!in_array($item['error'], $errors)) {
             $errors[] = $item['error'];
             echo "<div class='" . $item['rule'] . "'>";
             echo $item['error'];
