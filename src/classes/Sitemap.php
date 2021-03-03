@@ -31,7 +31,8 @@ class Sitemap
 
             //Add all paths to the sitemap
             foreach ($paths as $path) {
-                $generator->addURL(self::formatPath($path), new \DateTime());
+                $path = self::formatPath($path);
+                $generator->addURL($path, new \DateTime());
             }
 
             //Write the sitemap
@@ -74,6 +75,7 @@ class Sitemap
             array_pop($pathArr);
         }
         $filteredPath = implode('/',$pathArr);
+        $filteredPath = !empty($filteredPath) ? $filteredPath : '/';
         return $filteredPath;
     }
 
