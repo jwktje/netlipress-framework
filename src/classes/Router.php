@@ -39,6 +39,12 @@ class Router
             return;
         }
 
+        //If req path is sitemap, create and return sitemap
+        if ($request['path'] == '/sitemap.xml') {
+            \Netlipress\Sitemap::returnSitemap();
+            return;
+        }
+
         //Handle resized image requests
         if(isset($requestedFile['extension']) && in_array($requestedFile['extension'],['jpg','png']) && strpos($request['query'], 'size') !== false) {
             parse_str($request['query'],$query);
@@ -107,7 +113,7 @@ class Router
      * Gets all collections that are defined in the content folder
      */
 
-    private static function getKnownCollections()
+    public static function getKnownCollections()
     {
         $collections = [];
         //Core collections without single
