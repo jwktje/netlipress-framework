@@ -3,38 +3,71 @@
 
 namespace Netlipress;
 
+use Netlipress\Commerce;
 use Netlipress\Mail;
 
 
 class Forms
 {
     private $FormIndex;
+    private $AjaxAction;
 
     public function __construct()
     {
-        if(isset($_POST['FormIndex'])) {
-            $this->FormIndex = intval($_POST['FormIndex']);
+        if (isset($_POST['FormIndex'])) {
+            $this->FormIndex = $_POST['FormIndex'];
+        }
+        if (isset($_POST['AjaxAction'])) {
+            $this->AjaxAction = $_POST['AjaxAction'];
+        } else {
+            $this->AjaxAction = false;
         }
     }
 
     public function handle()
     {
-        if (!isset($_SESSION['FormAction'][$this->FormIndex])) {
+        if (!isset($_SESSION['FormAction'][$this->FormIndex]) && !$this->AjaxAction) {
             $this->redirect(['success' => false, 'error' => 'Action not found']);
+            return;
         }
+
+        if (COMMERCE_ACTIVE) {
+            $commerce = new Commerce();
+            if ($this->AjaxAction) {
+                //TODO: CSRF here needed?
+                if ($commerce->handleAjaxActions($this->AjaxAction)) {
+                    return;
+                }
+            }
+        }
+
+        //Check csrf token
+        if (!hash_equals($_SESSION['csrf_token'], $_POST['token'])) {
+            $this->redirect(['success' => false, 'error' => 'Token invalid']);
+            return;
+        }
+
         //This is so that the form tags know for which index to show errors
-        if(isset($_POST['FormIndex'])) {
+        if (isset($_POST['FormIndex'])) {
             $_SESSION['FormIndex'] = $this->FormIndex;
         }
         if ($_SESSION['FormAction'][$this->FormIndex] === 'contact') {
             $this->contactForm();
         }
+
+        if (COMMERCE_ACTIVE && $_SESSION['FormAction'][$this->FormIndex] === 'checkout') {
+            $this->commerceForm();
+        }
     }
 
-    private function redirect($status = [])
+    private function redirect($status = [], $url = false)
     {
-        //Build redirect url back to previous page with status as parameters
-        $redirect = explode('?', $_SERVER['HTTP_REFERER'], 2)[0];
+        if ($url) {
+            $redirect = $url;
+        } else {
+            //Build redirect url back to previous page with status as parameters
+            $redirect = explode('?', $_SERVER['HTTP_REFERER'], 2)[0];
+        }
 
         //Add query params
         if (!empty($status)) {
@@ -49,37 +82,47 @@ class Forms
         die();
     }
 
-    private function contactForm()
+    private function initialFormChecking()
     {
-
-        //Init
-        $mail = new Mail();
         $returnMessage = ['success' => false, 'form' => $this->FormIndex];
-        $fields = $_POST;
-        $subject = $_SESSION['FormSubject'][$this->FormIndex] ?? 'Contactform';
-
         //Validate based on schema
         $validationErrors = $this->validate();
 
         //Optionally Validate Recaptcha
-        if(RECAPTCHA) {
-            if(!$this->checkRecaptcha()){
-                $_SESSION['FormOldValues'][$this->FormIndex] = $fields;
+        if (RECAPTCHA) {
+            if (!$this->checkRecaptcha()) {
+                $_SESSION['FormOldValues'][$this->FormIndex] = $_POST;
                 $returnMessage['error'] = "Recaptcha invalid";
                 $this->redirect($returnMessage);
             }
         }
 
-        //Remove fields from table
-        unset($fields['recaptcha_response']);
-        unset($fields['FormIndex']);
-
         if (!empty($validationErrors)) {
             //Errors found to redirect back with errors and old data
             $_SESSION['FormValidationErrors'][$this->FormIndex] = $validationErrors;
-            $_SESSION['FormOldValues'][$this->FormIndex] = $fields;
+            $_SESSION['FormOldValues'][$this->FormIndex] = $_POST;
             $this->redirect($returnMessage);
         }
+    }
+
+    private function commerceForm()
+    {
+        $this->initialFormChecking();
+        $commerce = new Commerce();
+        $commerce->createNewOrderFromCart();
+    }
+
+    private function contactForm()
+    {
+        $mail = new Mail();
+        $fields = $_POST;
+        $subject = $_SESSION['FormSubject'][$this->FormIndex] ?? 'Contactform';
+
+        $this->initialFormChecking();
+
+        //Remove fields from table
+        unset($fields['recaptcha_response']);
+        unset($fields['FormIndex']);
 
         //If no errors found, build table
         $body = "<h1>$subject</h1>";
@@ -98,12 +141,11 @@ class Forms
         //Check if that worked
         if ($response['success']) {
             $returnMessage['success'] = true;
+            $this->redirect(['success' => true, 'form' => $this->FormIndex]);
         } else {
             //TODO: Maybe move error out of the URL and into the SESSION
-            $returnMessage['error'] = $response['message'];
+            $this->redirect(['success' => false,'error' => $response['message'], 'form' => $this->FormIndex]);
         }
-
-        $this->redirect($returnMessage);
 
     }
 
@@ -145,7 +187,8 @@ class Forms
         }
     }
 
-    private function checkRecaptcha() {
+    private function checkRecaptcha()
+    {
         // Build POST request:
         $recaptcha_url = 'https://www.google.com/recaptcha/api/siteverify';
         $recaptcha_secret = RECAPTCHA_SECRET;

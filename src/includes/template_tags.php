@@ -9,3 +9,5 @@ include('tags/wp_post.php');
 include('tags/wp_page.php');
 
 include('tags/open_graph.php');
+
+include('tags/commerce.php');

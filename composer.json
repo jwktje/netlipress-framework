@@ -21,7 +21,8 @@
     "erusev/parsedown": "^1.7",
     "phpmailer/phpmailer": "^v6.3.0",
     "intervention/image" : "^2.5.1",
-    "icamys/php-sitemap-generator" : "^4.3.1"
+    "icamys/php-sitemap-generator" : "^4.3.1",
+    "mollie/mollie-api-php": "^2.0"
   },
   "autoload": {
     "psr-4": {

@@ -39,6 +39,13 @@ function the_permalink($file = false)
     echo get_the_permalink($file);
 }
 
+function get_slug_from_entry($file)
+{
+    $path_parts = pathinfo($file);
+    $path_parts = explode('/',$path_parts['dirname']);
+    return end($path_parts);
+}
+
 function get_post_type()
 {
     return $GLOBALS['post']->post_type;

@@ -1,17 +1,26 @@
 <?php
-
-function form_init($subject, $messages, $action = 'contact')
+function form_init($subject, $messages, $action = 'contact', $outputUniqueErrorMessages = true)
 {
-    global $FormIndex;
+    global $FormCount, $FormIndex;
+
+    $FormCount = isset($FormCount) ? $FormCount + 1 : 1;
+    $FormIndex = $action . '_' . $FormCount;
+
+    //CSRF Token
+    if (!isset($_SESSION['csrf_token']) || (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 1))) {
+        // last request was more than 5 minutes ago or no token was set yet
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(24));
+    }
+    $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
+    echo '<input type="hidden" name="token" value="' . $_SESSION['csrf_token'] . '" />';
+
+    //Output form index field which gets added to GET as 'form' on redirect
+    echo '<input type="hidden" name="FormIndex" value="' . $FormIndex . '" />';
 
     if (RECAPTCHA) {
         recaptcha_output_field();
     }
 
-    $FormIndex = isset($FormIndex) ? $FormIndex + 1 : 1;
-
-    //Output form index field which gets added to GET as 'form' on redirect
-    echo '<input type="hidden" name="FormIndex" value="' . $FormIndex . '" />';
     //Output an anchor to redirect to
     echo '<div class="form-anchor" id="form-' . $FormIndex . '"></div>';
 
@@ -40,7 +49,7 @@ function form_init($subject, $messages, $action = 'contact')
             }
             if (form_error() !== ' ') {
                 echo '<div class="error">' . form_error() . '</div>';
-            } else {
+            } elseif ($outputUniqueErrorMessages) {
                 form_output_unique_validation_errors();
             }
             echo '</div>';
@@ -189,7 +198,7 @@ function form_field_error($name, $outputValidationError)
         $class .= $_SESSION['FormValidationErrors'][$FormIndex][$key]['rule'] ?? '';
         echo "<div class='$class'>";
         if ($outputValidationError) {
-            $_SESSION['FormValidationErrors'][$FormIndex][$key]['error'];
+            echo $_SESSION['FormValidationErrors'][$FormIndex][$key]['error'];
         }
         echo "</div>";
     }
@@ -198,7 +207,7 @@ function form_field_error($name, $outputValidationError)
 function form_redirect_matches()
 {
     global $FormIndex;
-    return isset($_SESSION['FormIndex']) && $FormIndex === intval($_SESSION['FormIndex']);
+    return isset($_SESSION['FormIndex']) && $FormIndex === $_SESSION['FormIndex'];
 }
 
 function form_output_unique_validation_errors()

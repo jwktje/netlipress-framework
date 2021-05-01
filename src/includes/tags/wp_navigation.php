@@ -15,8 +15,8 @@ function wp_nav_menu($args)
             foreach ($menuData->{'menu-items'} as $navItem) {
                 $class = "menu-item";
                 $class .= $navItem->class ? " " . $navItem->class : '';
-                $navMenu .= '<li class="' . $class . '">';
-                $navMenu .= '<a href="' . $navItem->url . '">' . $navItem->title . '</a>';
+                $navMenu .= '<li>';
+                $navMenu .= '<a class="' . $class . '" href="' . $navItem->url . '">' . $navItem->title . '</a>';
                 $navMenu .= '</li>';
             }
             $navMenu .= '</ul>';

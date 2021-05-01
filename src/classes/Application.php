@@ -76,5 +76,8 @@ class Application
 
         //GTM
         define('GTM_ACTIVE', defined('GTM_CONTAINER_ID'));
+
+        //Commerce
+        define('COMMERCE_ACTIVE', defined('MOLLIE_API_KEY'));
     }
 }

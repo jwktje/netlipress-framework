@@ -3,6 +3,7 @@
 namespace Netlipress;
 
 use Netlipress\Forms;
+use Netlipress\Commerce;
 use Netlipress\ImageResizer;
 
 class Router
@@ -19,11 +20,14 @@ class Router
 
         //If req path root, render the frontpage
         if ($request['path'] == '/') {
-            $frontPageFile = APP_ROOT . CONTENT_DIR . '/page/index.json';
-            if(file_exists($frontPageFile)) {
-                $this->front_page($frontPageFile);
-                return;
-            }
+            $this->handleUtilityPageRequest('/','front-page');
+            return;
+        }
+
+        //Handle checkout requests if commerce is active
+        if($request['path'] == '/checkout' && COMMERCE_ACTIVE) {
+            $this->handleUtilityPageRequest('/checkout','page-checkout');
+            return;
         }
 
         //If req path is the blog home, setup the query data and render the post index template
@@ -92,6 +96,23 @@ class Router
     }
 
     /**
+     * Render a page for a unique page type
+     */
+
+    private function handleUtilityPageRequest($slug, $template) {
+        $frontPageFile = APP_ROOT . CONTENT_DIR . '/page' . $slug . '/index.json';
+        if(file_exists($frontPageFile)) {
+            $tpl = new Template();
+            http_response_code(200);
+            $template = file_exists(APP_ROOT . TEMPLATE_DIR . '/'.$template.'.php') ? $template : 'page';
+            global $post;
+            $post = get_post($frontPageFile);
+            $tpl->render($template);
+            return;
+        }
+    }
+
+    /**
      * Get collection from Request
      */
 
@@ -131,20 +152,6 @@ class Router
     }
 
     /**
-     * Renders the static front page
-     */
-
-    private function front_page($entry) {
-        $tpl = new Template();
-        http_response_code(200);
-
-        $template = file_exists(APP_ROOT . TEMPLATE_DIR . '/front-page.php') ? 'front-page' : 'page';
-        global $post;
-        $post = get_post($entry);
-        $tpl->render($template);
-    }
-
-    /**
      * Renders the blog home page and sets up loop globals
      */
 
@@ -177,7 +184,8 @@ class Router
         $tpl = new Template();
         http_response_code(200);
         if ($collection == 'page') {
-            $templateToUse = 'page';
+            $entrySlug = get_slug_from_entry($entry);
+            $templateToUse = file_exists(APP_ROOT . TEMPLATE_DIR . '/page-'.$entrySlug.'.php') ? 'page-'.$entrySlug : 'page';
         } elseif ($collection == 'post') {
             $templateToUse = 'single';
         } else {
