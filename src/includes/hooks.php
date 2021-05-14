@@ -3,7 +3,9 @@
 function wp_head()
 {
     //Page title
-    echo '<title>' . SITE_NAME . ' - ' . get_the_title() . "</title>\n\t";
+    $title = get_field('social_title');
+    $title = !empty($title) ? $title : SITE_NAME . ' - ' . get_the_title();
+    echo '<title>' . $title . "</title>\n\t";
 
     //Favicon
     echo '<link rel="icon" href="/theme/img/icon.svg" type="image/svg+xml">' . "\n\t";
