@@ -2,10 +2,6 @@
 
 namespace Netlipress;
 
-use Netlipress\Forms;
-use Netlipress\Commerce;
-use Netlipress\ImageResizer;
-
 class Router
 {
 
@@ -21,12 +17,6 @@ class Router
         //If req path root, render the frontpage
         if ($request['path'] == '/') {
             $this->handleUtilityPageRequest('/','front-page');
-            return;
-        }
-
-        //Handle checkout requests if commerce is active
-        if($request['path'] == '/checkout' && COMMERCE_ACTIVE) {
-            $this->handleUtilityPageRequest('/checkout','page-checkout');
             return;
         }
 
@@ -70,7 +60,7 @@ class Router
      * Render a page for an entry in a collection
      */
 
-    private function handleCollectionRequest($request) {
+    public function handleCollectionRequest($request) {
         //Make a path array
         $pathArr = explode('/', $request['path']);
 
@@ -99,7 +89,7 @@ class Router
      * Render a page for a unique page type
      */
 
-    private function handleUtilityPageRequest($slug, $template) {
+    public function handleUtilityPageRequest($slug, $template) {
         $frontPageFile = APP_ROOT . CONTENT_DIR . '/page' . $slug . '/index.json';
         if(file_exists($frontPageFile)) {
             $tpl = new Template();

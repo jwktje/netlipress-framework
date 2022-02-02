@@ -25,3 +25,11 @@ function wp_nav_menu($args)
         }
     }
 }
+
+function wp_get_nav_menu_items($location) {
+    $menuFile = APP_ROOT . CONTENT_DIR . '/menu/' . $location . '.json';
+    if (file_exists($menuFile)) {
+        $menuData = json_decode(file_get_contents($menuFile));
+        return $menuData->{'menu-items'} ?? [];
+    }
+}

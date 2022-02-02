@@ -3,10 +3,6 @@
 
 namespace Netlipress;
 
-use Netlipress\Commerce;
-use Netlipress\Mail;
-
-
 class Forms
 {
     private $FormIndex;
@@ -31,16 +27,6 @@ class Forms
             return;
         }
 
-        if (COMMERCE_ACTIVE) {
-            $commerce = new Commerce();
-            if ($this->AjaxAction) {
-                //TODO: CSRF here needed?
-                if ($commerce->handleAjaxActions($this->AjaxAction)) {
-                    return;
-                }
-            }
-        }
-
         //Check csrf token
         if (!hash_equals($_SESSION['csrf_token'], $_POST['token'])) {
             $this->redirect(['success' => false, 'error' => 'Token invalid']);
@@ -53,10 +39,6 @@ class Forms
         }
         if ($_SESSION['FormAction'][$this->FormIndex] === 'contact') {
             $this->contactForm();
-        }
-
-        if (COMMERCE_ACTIVE && $_SESSION['FormAction'][$this->FormIndex] === 'checkout') {
-            $this->commerceForm();
         }
     }
 
@@ -103,13 +85,6 @@ class Forms
             $_SESSION['FormOldValues'][$this->FormIndex] = $_POST;
             $this->redirect($returnMessage);
         }
-    }
-
-    private function commerceForm()
-    {
-        $this->initialFormChecking();
-        $commerce = new Commerce();
-        $commerce->createNewOrderFromCart();
     }
 
     private function contactForm()

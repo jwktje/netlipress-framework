@@ -2,8 +2,6 @@
 
 namespace Netlipress;
 
-use Netlipress\Router;
-
 class Application
 {
     public function __construct()
@@ -13,7 +11,9 @@ class Application
         require __DIR__ . '/../includes/debug.php';
         require __DIR__ . '/../includes/hooks.php';
         require __DIR__ . '/../includes/template_tags.php';
+    }
 
+    public function run() {
         session_start();
 
         $router = new Router();
@@ -77,7 +77,5 @@ class Application
         //GTM
         define('GTM_ACTIVE', defined('GTM_CONTAINER_ID'));
 
-        //Commerce
-        define('COMMERCE_ACTIVE', defined('MOLLIE_API_KEY'));
     }
 }
