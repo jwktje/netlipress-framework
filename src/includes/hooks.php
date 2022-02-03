@@ -26,9 +26,6 @@ function wp_head()
     if(GTM_ACTIVE) {
         gtm_head();
     }
-
-    //Conditionally load Netlify CMS Identity widget
-    \Netlipress\NetlifyCms::outputNetlifyIdentityWidget();
 }
 
 function wp_body_open() {
@@ -49,5 +46,6 @@ function wp_footer()
     }
 
     //Conditionally load Netlify CMS Identity Code
+    \Netlipress\NetlifyCms::outputNetlifyIdentityWidget();
     \Netlipress\NetlifyCms::outputNetlifyIdentityScript();
 }
