@@ -12,6 +12,7 @@ function the_post()
     $currentPost = $GLOBALS['loop'][0];
     $GLOBALS['post'] = json_decode(file_get_contents($currentPost));
     $GLOBALS['post']->path = $currentPost;
+    $GLOBALS['post']->post_type = \Netlipress\Router::getCollectionFromRequestPath(str_replace(APP_ROOT . CONTENT_DIR, '', $currentPost));
     unset($GLOBALS['loop'][0]);
     $GLOBALS['loop'] = array_values($GLOBALS['loop']);
 }
@@ -42,7 +43,7 @@ function the_permalink($file = false)
 function get_slug_from_entry($file)
 {
     $path_parts = pathinfo($file);
-    $path_parts = explode('/',$path_parts['dirname']);
+    $path_parts = explode('/', $path_parts['dirname']);
     return end($path_parts);
 }
 
@@ -87,7 +88,7 @@ function get_post($file)
     $data = json_decode(file_get_contents($file));
     $data->path = $file;
     //This turns the absolute path into a relative path, and then calls a static router function to filter out which collection we're handling
-    $data->post_type = \Netlipress\Router::getCollectionFromRequestPath(str_replace(APP_ROOT . CONTENT_DIR,'',$file));
+    $data->post_type = \Netlipress\Router::getCollectionFromRequestPath(str_replace(APP_ROOT . CONTENT_DIR, '', $file));
     return $data;
 }
 
@@ -103,23 +104,24 @@ function wp_reset_postdata()
     $post = $originalPost;
 }
 
-function wp_trim_words( string $text, int $num_words = 55, string $more = null ) {
+function wp_trim_words(string $text, int $num_words = 55, string $more = null)
+{
     $words_array = explode(' ', $text);
     $words_array = array_slice($words_array, 0, $num_words);
     $text = implode(' ', $words_array);
-    if($more) {
+    if ($more) {
         $text .= $more;
     }
     return $text;
 }
 
-function home_url() {
+function home_url()
+{
     //Check protocol
     $isSecure = false;
     if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
         $isSecure = true;
-    }
-    elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on') {
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on') {
         $isSecure = true;
     }
     //Build full URL

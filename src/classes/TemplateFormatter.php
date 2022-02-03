@@ -6,42 +6,55 @@ use Parsedown;
 
 class TemplateFormatter
 {
-    private function getCastsConfig()
+    private $widgetsToFormat = ['markdown'];
+
+    public function shouldFormatField($fieldName, $sectionName = null)
     {
-        $castsConfig = APP_ROOT . '/web/admin/casts.json';
-        if (!file_exists($castsConfig)) {
+        $config = NetlifyCms::getConfig();
+        $collection = get_post_type();
+        $collectionIndex = array_search($collection, array_column($config->config->collections, 'name'));
+        if($collectionIndex !== false) {
+            //We found a matching collection in the NetlifyCMS config
+            $collectionFieldsConfig = $config->config->collections[$collectionIndex]->fields;
+        } else {
             return false;
         }
-        return json_decode(file_get_contents($castsConfig));
-    }
-
-    public function shouldFormatField($area, $fieldName, $collection = 'page')
-    {
-        $casts = $this->getCastsConfig();
-        if($collection === 'sections') {
-            if (
-                $casts &&
-                isset($casts->{$collection}) &&
-                isset($casts->{$collection}->{$area}) &&
-                isset($casts->{$collection}->{$area}->{$fieldName})) {
-                return $casts->{$collection}->{$area}->{$fieldName};
+        if(!is_null($sectionName)) {
+            $sectionsFieldIndex = array_search('sections', array_column($collectionFieldsConfig, 'name'));
+            if($sectionsFieldIndex !== false) {
+                $sectionsFieldTypesConfig = $collectionFieldsConfig[$sectionsFieldIndex]->types;
+                $currentSectionFieldsIndex = array_search($sectionName, array_column($sectionsFieldTypesConfig, 'name'));
+                if($currentSectionFieldsIndex !== false) {
+                    $currentSectionFieldsConfig = $sectionsFieldTypesConfig[$currentSectionFieldsIndex]->fields;
+                    $currentSectionCurrentFieldIndex = array_search($fieldName, array_column($currentSectionFieldsConfig, 'name'));
+                    if($currentSectionCurrentFieldIndex !== false) {
+                        $fieldConfig = $currentSectionFieldsConfig[$currentSectionCurrentFieldIndex];
+                    }
+                }
+            } else {
+                return false;
+            }
+        } else {
+            $fieldConfigIndex = array_search($fieldName, array_column($collectionFieldsConfig, 'name'));
+            if($fieldConfigIndex !== false) {
+                //We found a matching collection in the NetlifyCMS config
+                $fieldConfig = $collectionFieldsConfig[$fieldConfigIndex];
+            } else {
+                return false;
             }
         }
-        if (
-            $casts &&
-            isset($casts->{$collection}) &&
-            isset($casts->{$collection}->{$fieldName})) {
-            return $casts->{$collection}->{$fieldName};
+        if(in_array($fieldConfig->widget ?? null, $this->widgetsToFormat)) {
+            return $fieldConfig->widget;
         }
         return false;
     }
 
-    public function formatField($area, $fieldName, $data, $collection = 'page')
+    public function formatField($fieldName, $data, $sectionName = null)
     {
-        $type = $this->shouldFormatField($area, $fieldName, $collection);
+        $type = $this->shouldFormatField($fieldName, $sectionName);
         if ($type === 'markdown') {
-            $Parsedown = new Parsedown();
-            return $Parsedown->text($data);
+            return (new \Parsedown)->text($data);
         }
+        return $data;
     }
 }

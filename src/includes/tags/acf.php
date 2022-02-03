@@ -16,7 +16,7 @@ function get_field($fieldName, $from = false)
     $formatter = new TemplateFormatter();
 
     if ($from === 'option' && strpos($fieldName, '_') !== false) {
-        //Settings are assumed to be prefixed by a group corresponding to the settings json filename
+        //Settings are assumed to be prefixed by a group corresponding to the settings json filename. eg; socials_facebook
         $fieldNameArr = explode('_',$fieldName);
         $settings = get_settings($fieldNameArr[0]);
         if(isset($settings->{$fieldNameArr[1]})) {
@@ -34,17 +34,13 @@ function get_field($fieldName, $from = false)
     }
 
     if (!empty($GLOBALS['block']->{$fieldName})) {
-        if ($formatter->shouldFormatField($GLOBALS['block']->type, $fieldName, 'sections')) {
-            return $formatter->formatField($GLOBALS['block']->type, $fieldName, $GLOBALS['block']->{$fieldName}, 'sections');
-        }
-        return $GLOBALS['block']->{$fieldName};
+        //Getting field inside a block partial
+        return $formatter->formatField($fieldName, $GLOBALS['block']->{$fieldName}, $GLOBALS['block']->type);
     }
 
     if (!empty($GLOBALS['post']->{$fieldName})) {
-        if ($formatter->shouldFormatField(false, $fieldName, $GLOBALS['post']->post_type ?? 'page')) {
-            return $formatter->formatField(false, $fieldName, $GLOBALS['post']->{$fieldName}, $GLOBALS['post']->post_type);
-        }
-        return $GLOBALS['post']->{$fieldName};
+        //Getting field on a post
+        return $formatter->formatField($fieldName, $GLOBALS['post']->{$fieldName});
     }
     return false;
 }

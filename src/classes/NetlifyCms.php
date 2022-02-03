@@ -4,7 +4,7 @@ namespace Netlipress;
 
 class NetlifyCms
 {
-    private static function getConfig($includeFieldGroups = true)
+    public static function getConfig($includeFieldGroups = true)
     {
         $configFile = APP_ROOT . '/web/admin/config.json';
         $fieldsFile = APP_ROOT . '/web/admin/fields.json';
