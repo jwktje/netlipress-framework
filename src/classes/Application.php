@@ -55,9 +55,6 @@ class Application
         if(!defined('MAIL_DIR_PER_SUBJECT')) {
             define('MAIL_DIR_PER_SUBJECT', false);
         }
-        if(!defined('FORM_HANDLE_URL')) {
-            define('FORM_HANDLE_URL', '/handle-form');
-        }
         if(!defined('MAIL_TO_NAME')) {
             define('MAIL_TO_NAME', 'NetliPress Recipient');
         }

@@ -26,13 +26,6 @@ class Router
             return;
         }
 
-        //When POSTing to the form handle URL, pass it over to the form handler
-        if ($request['path'] == FORM_HANDLE_URL && $_SERVER['REQUEST_METHOD'] === "POST") {
-            $formHandler = new Forms();
-            $formHandler->handle();
-            return;
-        }
-
         //If req path is sitemap, create and return sitemap
         if ($request['path'] == '/sitemap.xml') {
             \Netlipress\Sitemap::returnSitemap();
