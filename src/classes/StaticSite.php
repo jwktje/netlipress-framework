@@ -5,21 +5,22 @@ namespace Netlipress;
 class StaticSite
 {
 
-    private string $outputDirectory = APP_ROOT . '/build';
-    private string $contentDirectory = APP_ROOT . '/content';
     private Router $router;
+    private Application $app;
 
     public function __construct()
     {
+        //Create application to load constants from config
+        $this->app = new Application();
         //Create router
         $this->router = new Router();
 
         //Use URL Env for Netlify or the provided domain from the commandline invocation
-        if(getenv('URL')) {
+        if (getenv('URL')) {
             $siteUrl = getenv('URL');
         } else {
             global $argv;
-            if(isset($argv[1]) && filter_var($argv[1], FILTER_VALIDATE_URL)) {
+            if (isset($argv[1]) && filter_var($argv[1], FILTER_VALIDATE_URL)) {
                 $siteUrl = $argv[1];
             } else {
                 echo 'ERROR: No URL enviroment variable found. Please provide a full URL to the build command. Example; https://mysite.com';
@@ -47,41 +48,44 @@ class StaticSite
         return $results;
     }
 
-    private function emptyBuildFolder() {
-        $dir = $this->outputDirectory;
-        if(file_exists($dir)){
-            $di = new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS);
+    private function emptyBuildFolder()
+    {
+        if (file_exists(SSG_OUTPUT_DIR)) {
+            $di = new \RecursiveDirectoryIterator(SSG_OUTPUT_DIR, \FilesystemIterator::SKIP_DOTS);
             $ri = new \RecursiveIteratorIterator($di, \RecursiveIteratorIterator::CHILD_FIRST);
-            foreach ( $ri as $file ) {
-                $file->isDir() ?  rmdir($file) : unlink($file);
+            foreach ($ri as $file) {
+                $file->isDir() ? rmdir($file) : unlink($file);
             }
         }
     }
 
-    private function renderBlogHome() {
+    private function renderBlogHome()
+    {
         ob_start();
         $this->router->blog_home();
-        file_put_contents($this->outputDirectory . '/blog.html', ob_get_clean());
+        file_put_contents(SSG_OUTPUT_DIR . '/blog.html', ob_get_clean());
     }
 
-    private function createNetlifyCmsAdminFolder() {
-        if (!file_exists($this->outputDirectory. '/admin')) {
-            mkdir($this->outputDirectory. '/admin');
+    private function createNetlifyCmsAdminFolder()
+    {
+        if (!file_exists(SSG_OUTPUT_DIR . '/admin')) {
+            mkdir(SSG_OUTPUT_DIR . '/admin');
         }
         ob_start();
         include(APP_ROOT . '/web/admin/index.php');
-        file_put_contents($this->outputDirectory . '/admin/index.html', ob_get_clean());
+        file_put_contents(SSG_OUTPUT_DIR . '/admin/index.html', ob_get_clean());
     }
 
-    private function renderContentJsonToHtml($jsonFileAbsolutePath, $stripFromSlug = null) {
+    private function renderContentJsonToHtml($jsonFileAbsolutePath, $stripFromSlug = null)
+    {
         //Absolute to relative path and pathinfo
-        $relativeFilePath = str_replace($this->contentDirectory, '', $jsonFileAbsolutePath);
+        $relativeFilePath = str_replace(APP_ROOT . CONTENT_DIR, '', $jsonFileAbsolutePath);
         $pathInfo = pathinfo($relativeFilePath);
         $fileRelativeDirname = $pathInfo['dirname'];
 
         //Optionally remove part from the output path
-        if($stripFromSlug) {
-            $fileRelativeDirname = str_replace($stripFromSlug,'',$fileRelativeDirname);
+        if ($stripFromSlug) {
+            $fileRelativeDirname = str_replace($stripFromSlug, '', $fileRelativeDirname);
         }
 
         if ($pathInfo['extension'] === 'json') {
@@ -91,7 +95,7 @@ class StaticSite
 
             if ($relativeFilePath === '/page/index.json') {
                 //Create homepage
-                $this->router->handleUtilityPageRequest('/','front-page');
+                $this->router->handleUtilityPageRequest('/', 'front-page');
             } else {
                 //Create default page
                 $this->router->handleCollectionRequest(['path' => $fileRelativeDirname . '/' . $pathInfo['filename']]);
@@ -101,7 +105,7 @@ class StaticSite
             $pageHTML = ob_get_clean();
 
             //Write html to output file
-            $outputFilePath = $this->outputDirectory . $fileRelativeDirname;
+            $outputFilePath = SSG_OUTPUT_DIR . $fileRelativeDirname;
             $outputFilename = $outputFilePath . '/' . $pathInfo['filename'] . '.html';
 
             //Make dir
@@ -113,17 +117,18 @@ class StaticSite
 
     }
 
-    private function syncDirectoryToBuild($path) {
-        if (!file_exists($this->outputDirectory. '/' . $path)) {
-            mkdir($this->outputDirectory. '/' . $path);
+    private function syncDirectoryToBuild($path)
+    {
+        if (!file_exists(SSG_OUTPUT_DIR . '/' . $path)) {
+            mkdir(SSG_OUTPUT_DIR . '/' . $path);
         }
 
         $searchDir = APP_ROOT . '/web/' . $path;
 
         foreach (new \DirectoryIterator($searchDir) as $fileInfo) {
             $name = $fileInfo->getFilename();
-            if(!$fileInfo->isDot() && $fileInfo->isFile() && $name !== '.gitkeep')  {
-                copy($fileInfo->getPathname(), $this->outputDirectory . '/' . $path . '/' . $name);
+            if (!$fileInfo->isDot() && $fileInfo->isFile() && $name !== '.gitkeep') {
+                copy($fileInfo->getPathname(), SSG_OUTPUT_DIR . '/' . $path . '/' . $name);
             }
         }
     }
@@ -131,27 +136,27 @@ class StaticSite
     public function generate()
     {
         //Optionally create output dir
-        if (!file_exists($this->outputDirectory)) {
-            mkdir($this->outputDirectory);
+        if (!file_exists(SSG_OUTPUT_DIR)) {
+            mkdir(SSG_OUTPUT_DIR);
         }
 
         //Empty output dir
         $this->emptyBuildFolder();
 
         //Create needed directories in build volder
-        mkdir($this->outputDirectory. '/theme');
-        mkdir($this->outputDirectory. '/post');
+        mkdir(SSG_OUTPUT_DIR . '/theme');
+        mkdir(SSG_OUTPUT_DIR . '/post');
 
         //TODO: Create Sitemap.xml?
 
         //Scan through pages and render to HTML
-        $pages = $this->getDirContents($this->contentDirectory . '/page');
+        $pages = $this->getDirContents(PAGES_DIR);
         foreach ($pages as $page) {
             $this->renderContentJsonToHtml($page, '/page');
         }
 
         //Scan through posts and render to HTML
-        $posts = $this->getDirContents($this->contentDirectory . '/post');
+        $posts = $this->getDirContents(POSTS_DIR);
         foreach ($posts as $post) {
             $this->renderContentJsonToHtml($post);
         }

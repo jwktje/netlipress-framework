@@ -4,6 +4,5 @@
  */
 require './config.php';
 require './vendor/autoload.php';
-$app = new Netlipress\Application();
 $ssg = new Netlipress\StaticSite();
 $ssg->generate();
