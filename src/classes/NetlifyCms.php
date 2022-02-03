@@ -4,20 +4,44 @@ namespace Netlipress;
 
 class NetlifyCms
 {
-    public static function getConfig($includeFieldGroups = true)
+    public static function getConfig($mergeAllConfigFiles = true)
     {
-        $configFile = APP_ROOT . '/web/admin/config.json';
-        $fieldsFile = APP_ROOT . '/web/admin/fields.json';
+        $configFile = APP_ROOT . '/config/cms/config.json';
+        $collectionsFile = APP_ROOT . '/config/cms/collections.json';
+        $fieldsFile = APP_ROOT . '/config/cms/fields.json';
+        $menuFile = APP_ROOT . '/web/admin/menu.json';
+        $settingsFile = APP_ROOT . '/web/admin/settings.json';
+
+        //Get base config file
         $config = json_decode(file_get_contents($configFile));
 
-        if($includeFieldGroups) {
-            if(file_exists($fieldsFile)) {
+        if ($mergeAllConfigFiles) {
+            //Load collections from separate file
+            if (file_exists($collectionsFile)) {
+                $collectionsConfig = json_decode(file_get_contents($collectionsFile));
+                $config->config->collections = $collectionsConfig;
+            }
+
+            //Load menu collection from separate file
+            if (file_exists($menuFile)) {
+                $menuCollectionConfig = json_decode(file_get_contents($menuFile));
+                $config->config->collections[] = $menuCollectionConfig;
+            }
+
+            //Load settings collection from separate file
+            if (file_exists($settingsFile)) {
+                $settingsCollectionConfig = json_decode(file_get_contents($settingsFile));
+                $config->config->collections[] = $settingsCollectionConfig;
+            }
+
+            //Merge Field groups to collections
+            if (file_exists($fieldsFile)) {
                 $fieldsConfig = json_decode(file_get_contents($fieldsFile));
                 //Copy shared fields to all relevant collections
-                foreach($fieldsConfig ?? [] as $sharedFieldGroup) {
-                    foreach($sharedFieldGroup->collections ?? [] as $collection) {
+                foreach ($fieldsConfig ?? [] as $sharedFieldGroup) {
+                    foreach ($sharedFieldGroup->collections ?? [] as $collection) {
                         $collectionIndex = array_search($collection, array_column($config->config->collections, 'name'));
-                        if($collectionIndex !== false) {
+                        if ($collectionIndex !== false) {
                             //We found a matching collection in the NetlifyCMS config so we should fill the fields from our shared group
                             $config->config->collections[$collectionIndex]->fields = $sharedFieldGroup->fields;
                         }
