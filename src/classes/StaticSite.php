@@ -64,6 +64,15 @@ class StaticSite
         file_put_contents($this->outputDirectory . '/blog.html', ob_get_clean());
     }
 
+    private function createNetlifyCmsAdminFolder() {
+        if (!file_exists($this->outputDirectory. '/admin')) {
+            mkdir($this->outputDirectory. '/admin');
+        }
+        ob_start();
+        include(APP_ROOT . '/web/admin/index.php');
+        file_put_contents($this->outputDirectory . '/admin/index.html', ob_get_clean());
+    }
+
     private function renderContentJsonToHtml($jsonFileAbsolutePath, $stripFromSlug = null) {
         //Absolute to relative path and pathinfo
         $relativeFilePath = str_replace($this->contentDirectory, '', $jsonFileAbsolutePath);
@@ -154,5 +163,8 @@ class StaticSite
         $this->syncDirectoryToBuild('uploads');
         $this->syncDirectoryToBuild('theme/img');
         $this->syncDirectoryToBuild('theme/dist');
+
+        //Create Netlify CMS admin index file from dynamic json config
+        $this->createNetlifyCmsAdminFolder();
     }
 }
