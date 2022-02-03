@@ -14,11 +14,21 @@ class StaticSite
         //Create router
         $this->router = new Router();
 
+        //Use URL Env for Netlify or the provided domain from the commandline invocation
         if(getenv('URL')) {
-            $urlInfo = parse_url(getenv('URL'));
-            $_SERVER['SERVER_NAME'] = $urlInfo['host'];
-            $_SERVER['HTTPS'] = ($urlInfo['scheme'] === 'https') ? 'on' : 'off';
+            $siteUrl = getenv('URL');
+        } else {
+            global $argv;
+            if(isset($argv[1]) && filter_var($argv[1], FILTER_VALIDATE_URL)) {
+                $siteUrl = $argv[1];
+            } else {
+                echo 'ERROR: No URL enviroment variable found. Please provide a full URL to the build command. Example; https://mysite.com';
+                die;
+            }
         }
+        $urlInfo = parse_url($siteUrl);
+        $_SERVER['SERVER_NAME'] = $urlInfo['host'];
+        $_SERVER['HTTPS'] = ($urlInfo['scheme'] === 'https') ? 'on' : 'off';
     }
 
     private function getDirContents($dir, &$results = array())
