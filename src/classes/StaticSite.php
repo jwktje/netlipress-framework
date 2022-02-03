@@ -70,7 +70,7 @@ class StaticSite
             //Start an object to store the HTML
             ob_start();
 
-            if ($relativeFilePath === '/index.json') {
+            if ($relativeFilePath === '/page/index.json') {
                 //Create homepage
                 $this->router->handleUtilityPageRequest('/','front-page');
             } else {
