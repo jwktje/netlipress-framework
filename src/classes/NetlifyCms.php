@@ -9,8 +9,8 @@ class NetlifyCms
         $configFile = APP_ROOT . '/config/cms/config.json';
         $collectionsFile = APP_ROOT . '/config/cms/collections.json';
         $fieldsFile = APP_ROOT . '/config/cms/fields.json';
-        $menuFile = APP_ROOT . '/web/admin/menu.json';
-        $settingsFile = APP_ROOT . '/web/admin/settings.json';
+        $menuFile = APP_ROOT . '/config/cms/menu.json';
+        $settingsFile = APP_ROOT . '/config/cms/settings.json';
 
         //Get base config file
         $config = json_decode(file_get_contents($configFile));
