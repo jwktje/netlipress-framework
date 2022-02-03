@@ -6,10 +6,14 @@ class StaticSite
 {
 
     private string $outputDirectory = APP_ROOT . '/build';
-    private string $pagesDirectory = APP_ROOT . '/content/page';
+    private string $contentDirectory = APP_ROOT . '/content';
+    private Router $router;
 
     public function __construct()
     {
+        //Create router
+        $this->router = new Router();
+
         if(getenv('URL')) {
             $urlInfo = parse_url(getenv('URL'));
             $_SERVER['SERVER_NAME'] = $urlInfo['host'];
@@ -44,35 +48,41 @@ class StaticSite
         }
     }
 
-    private function renderContentJsonToHtml($jsonFileAbsolutePath) {
-        //Create router
-        $router = new Router();
+    private function renderBlogHome() {
+        ob_start();
+        $this->router->blog_home();
+        file_put_contents($this->outputDirectory . '/blog.html', ob_get_clean());
+    }
 
+    private function renderContentJsonToHtml($jsonFileAbsolutePath, $stripFromSlug = null) {
         //Absolute to relative path and pathinfo
-        $relativeFilePath = str_replace($this->pagesDirectory, '', $jsonFileAbsolutePath);
+        $relativeFilePath = str_replace($this->contentDirectory, '', $jsonFileAbsolutePath);
         $pathInfo = pathinfo($relativeFilePath);
-        $urlPath = $pathInfo['dirname'] . '/' . $pathInfo['filename'];
+        $fileRelativeDirname = $pathInfo['dirname'];
+
+        //Optionally remove part from the output path
+        if($stripFromSlug) {
+            $fileRelativeDirname = str_replace($stripFromSlug,'',$fileRelativeDirname);
+        }
 
         if ($pathInfo['extension'] === 'json') {
+
             //Start an object to store the HTML
             ob_start();
 
             if ($relativeFilePath === '/index.json') {
                 //Create homepage
-                $router->handleUtilityPageRequest('/','front-page');
+                $this->router->handleUtilityPageRequest('/','front-page');
             } else {
                 //Create default page
-                $router->handleCollectionRequest(['path' => $urlPath]);
+                $this->router->handleCollectionRequest(['path' => $fileRelativeDirname . '/' . $pathInfo['filename']]);
             }
-
-            //TODO: Create Blog home?
-            //TODO: Create Sitemap.xml?
 
             //Render page
             $pageHTML = ob_get_clean();
 
             //Write html to output file
-            $outputFilePath = $this->outputDirectory . $pathInfo['dirname'];
+            $outputFilePath = $this->outputDirectory . $fileRelativeDirname;
             $outputFilename = $outputFilePath . '/' . $pathInfo['filename'] . '.html';
 
             //Make dir
@@ -101,25 +111,37 @@ class StaticSite
 
     public function generate()
     {
-        //Create output dir
+        //Optionally create output dir
         if (!file_exists($this->outputDirectory)) {
             mkdir($this->outputDirectory);
         }
+
         //Empty output dir
         $this->emptyBuildFolder();
 
+        //Create needed directories in build volder
+        mkdir($this->outputDirectory. '/theme');
+        mkdir($this->outputDirectory. '/post');
+
+        //TODO: Create Sitemap.xml?
+
         //Scan through pages and render to HTML
-        $pages = $this->getDirContents($this->pagesDirectory);
+        $pages = $this->getDirContents($this->contentDirectory . '/page');
         foreach ($pages as $page) {
-            $this->renderContentJsonToHtml($page);
+            $this->renderContentJsonToHtml($page, '/page');
         }
 
-        //Create theme/asset output dir
-        if (!file_exists($this->outputDirectory. '/theme/dist')) {
-            mkdir($this->outputDirectory. '/theme');
+        //Scan through posts and render to HTML
+        $posts = $this->getDirContents($this->contentDirectory . '/post');
+        foreach ($posts as $post) {
+            $this->renderContentJsonToHtml($post);
         }
+
+        //Create blog home
+        $this->renderBlogHome();
 
         //Copy theme images to build directory
+        $this->syncDirectoryToBuild('uploads');
         $this->syncDirectoryToBuild('theme/img');
         $this->syncDirectoryToBuild('theme/dist');
     }

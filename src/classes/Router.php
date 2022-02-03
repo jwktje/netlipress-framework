@@ -145,7 +145,7 @@ class Router
      * Renders the blog home page and sets up loop globals
      */
 
-    private function blog_home()
+    public function blog_home()
     {
         $tpl = new Template();
         http_response_code(200);

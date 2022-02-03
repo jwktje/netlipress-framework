@@ -41,7 +41,7 @@ function get_field($fieldName, $from = false)
     }
 
     if (!empty($GLOBALS['post']->{$fieldName})) {
-        if ($formatter->shouldFormatField(false, $fieldName, $GLOBALS['post']->post_type)) {
+        if ($formatter->shouldFormatField(false, $fieldName, $GLOBALS['post']->post_type ?? 'page')) {
             return $formatter->formatField(false, $fieldName, $GLOBALS['post']->{$fieldName}, $GLOBALS['post']->post_type);
         }
         return $GLOBALS['post']->{$fieldName};
