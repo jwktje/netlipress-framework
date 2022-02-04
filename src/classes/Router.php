@@ -150,6 +150,7 @@ class Router
         $foundPosts = [];
         foreach (new \DirectoryIterator(POSTS_DIR) as $fileInfo) {
             if ($fileInfo->isDot()) continue;
+            if($fileInfo->getExtension() !== 'json') continue;
             $foundPosts[] = $fileInfo->getPathname();
         }
 

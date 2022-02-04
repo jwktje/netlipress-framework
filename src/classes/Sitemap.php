@@ -5,14 +5,15 @@ namespace Netlipress;
 
 class Sitemap
 {
-    public static function returnSitemap() {
+    public static function returnSitemap()
+    {
 
         $output = APP_ROOT . PUBLIC_DIR;
         $sitemapFile = $output . '/sitemap.xml';
         $cacheTime = 3600; //in seconds
 
         //Check if sitemap is older than 1 hour
-        if (file_exists($sitemapFile) && time()-filemtime($sitemapFile) < $cacheTime) {
+        if (file_exists($sitemapFile) && time() - filemtime($sitemapFile) < $cacheTime) {
             //file was generated in last hour, so return it
             self::outputSitemap();
         } else {
@@ -44,21 +45,25 @@ class Sitemap
         }
     }
 
-    private static function getPathsFromDir($dir) {
+    private static function getPathsFromDir($dir)
+    {
         $paths = [];
         foreach (new \DirectoryIterator(APP_ROOT . CONTENT_DIR . '/' . $dir) as $fileInfo) {
             if ($fileInfo->isDot()) continue;
-            if($fileInfo->isDir()) {
-                $paths = array_merge($paths,self::getPathsFromDir($dir . '/' . $fileInfo->getBasename()));
+            if ($fileInfo->isDir()) {
+                $paths = array_merge($paths, self::getPathsFromDir($dir . '/' . $fileInfo->getBasename()));
                 continue;
+            } else {
+                if ($fileInfo->getExtension() !== 'json') continue;
             }
-            $filePath = '/' . $dir . '/' . $fileInfo->getBasename('.' .$fileInfo->getExtension());
+            $filePath = '/' . $dir . '/' . $fileInfo->getBasename('.' . $fileInfo->getExtension());
             $paths[] = $filePath;
         }
         return $paths;
     }
 
-    private static function formatPath($path) {
+    private static function formatPath($path)
+    {
         /*
          * Some notes on the Router;
          * Page collection assumes no base slug.
@@ -67,19 +72,20 @@ class Sitemap
          */
         $pathArr = explode('/', $path);
         //Remove 'page' base slug
-        if($pathArr[1] == 'page') {
+        if ($pathArr[1] == 'page') {
             unset($pathArr[1]);
         }
         //Remove trailing 'index'
-        if(end($pathArr) == 'index') {
+        if (end($pathArr) == 'index') {
             array_pop($pathArr);
         }
-        $filteredPath = implode('/',$pathArr);
+        $filteredPath = implode('/', $pathArr);
         $filteredPath = !empty($filteredPath) ? $filteredPath : '/';
         return $filteredPath;
     }
 
-    private static function outputSitemap() {
+    private static function outputSitemap()
+    {
         $output = APP_ROOT . PUBLIC_DIR;
         header('Content-Type: application/xml; charset=utf-8');
         echo file_get_contents($output . '/sitemap.xml');
