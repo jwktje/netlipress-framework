@@ -25,7 +25,7 @@ class Application
         $staticConstantDefaults = [
             'SITE_NAME' => 'NetliPress',
             'CONTENT_DIR' => '/content',
-            'PUBLIC_DIR' => '/web',
+            'PUBLIC_DIR' => '/public',
             'TEMPLATE_URI' => '/theme',
             'BLOG_HOME' => '/blog',
             'USE_MIX' => false,

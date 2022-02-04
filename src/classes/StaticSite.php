@@ -72,7 +72,7 @@ class StaticSite
             mkdir(SSG_OUTPUT_DIR . '/admin');
         }
         ob_start();
-        include(APP_ROOT . '/web/admin/index.php');
+        include(APP_ROOT . PUBLIC_DIR . '/admin/index.php');
         file_put_contents(SSG_OUTPUT_DIR . '/admin/index.html', ob_get_clean());
     }
 
@@ -123,7 +123,7 @@ class StaticSite
             mkdir(SSG_OUTPUT_DIR . '/' . $path);
         }
 
-        $searchDir = APP_ROOT . '/web/' . $path;
+        $searchDir = APP_ROOT . PUBLIC_DIR . '/' . $path;
 
         foreach (new \DirectoryIterator($searchDir) as $fileInfo) {
             $name = $fileInfo->getFilename();
