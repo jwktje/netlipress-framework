@@ -150,15 +150,19 @@ class StaticSite
         //TODO: Create Sitemap.xml?
 
         //Scan through pages and render to HTML
-        $pages = $this->getDirContents(PAGES_DIR);
-        foreach ($pages as $page) {
-            $this->renderContentJsonToHtml($page, '/page');
+        if(file_exists(PAGES_DIR)) {
+            $pages = $this->getDirContents(PAGES_DIR);
+            foreach ($pages as $page) {
+                $this->renderContentJsonToHtml($page, '/page');
+            }
         }
 
         //Scan through posts and render to HTML
-        $posts = $this->getDirContents(POSTS_DIR);
-        foreach ($posts as $post) {
-            $this->renderContentJsonToHtml($post);
+        if(file_exists(POSTS_DIR)) {
+            $posts = $this->getDirContents(POSTS_DIR);
+            foreach ($posts as $post) {
+                $this->renderContentJsonToHtml($post);
+            }
         }
 
         //Create blog home
