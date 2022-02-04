@@ -148,10 +148,12 @@ class Router
 
         //Create a global loop array with entries for use in templates
         $foundPosts = [];
-        foreach (new \DirectoryIterator(POSTS_DIR) as $fileInfo) {
-            if ($fileInfo->isDot()) continue;
-            if($fileInfo->getExtension() !== 'json') continue;
-            $foundPosts[] = $fileInfo->getPathname();
+        if(file_exists(POSTS_DIR)) {
+            foreach (new \DirectoryIterator(POSTS_DIR) as $fileInfo) {
+                if ($fileInfo->isDot()) continue;
+                if($fileInfo->getExtension() !== 'json') continue;
+                $foundPosts[] = $fileInfo->getPathname();
+            }
         }
 
         global $loop, $post;
