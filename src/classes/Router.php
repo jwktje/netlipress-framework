@@ -83,15 +83,18 @@ class Router
      */
 
     public function handleUtilityPageRequest($slug, $template) {
-        $frontPageFile = APP_ROOT . CONTENT_DIR . '/page' . $slug . '/index.json';
-        if(file_exists($frontPageFile)) {
+        $pageFile = APP_ROOT . CONTENT_DIR . '/page' . $slug . '/index.json';
+        if(file_exists($pageFile)) {
             $tpl = new Template();
             http_response_code(200);
             $template = file_exists(APP_ROOT . TEMPLATE_DIR . '/'.$template.'.php') ? $template : 'page';
             global $post;
-            $post = get_post($frontPageFile);
+            $post = get_post($pageFile);
             $tpl->render($template);
-            return;
+        } else {
+            if(DEBUG && $slug == '/') {
+                $this->splashPage();
+            }
         }
     }
 
@@ -197,5 +200,13 @@ class Router
         $is404 = true;
         http_response_code(404);
         include(APP_ROOT . TEMPLATE_DIR . '/404.php');
+    }
+
+    /**
+     * Returns the splash page
+     */
+    public function splashPage()
+    {
+        include(__DIR__ . './../includes/templates/netlipress-splash.php');
     }
 }

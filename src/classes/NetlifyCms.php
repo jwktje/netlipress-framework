@@ -15,6 +15,18 @@ class NetlifyCms
         //Get base config file
         $config = json_decode(file_get_contents($configFile));
 
+        //Set git gateway based on environment
+        $cmsEnvironment = defined('NETLIFY') ? 'production' : 'local';
+        if ($cmsEnvironment == 'production' && isset($config->config->backend_production)) {
+            unset($config->config->backend);
+            $config->config->backend = $config->config->backend_production;
+            unset($config->config->backend_production);
+        } elseif ($cmsEnvironment == 'local' && isset($config->config->backend_local)) {
+            unset($config->config->backend);
+            $config->config->backend = $config->config->backend_local;
+            unset($config->config->backend_local);
+        }
+
         if ($mergeAllConfigFiles) {
             //Load collections from separate file
             if (file_exists($collectionsFile)) {
@@ -43,53 +55,50 @@ class NetlifyCms
                 ];
             }
 
-                //Merge Field groups to collections
-                if (file_exists($fieldsFile)) {
-                    $fieldsConfig = json_decode(file_get_contents($fieldsFile));
-                    //Copy shared fields to all relevant collections
-                    foreach ($fieldsConfig ?? [] as $sharedFieldGroup) {
-                        foreach ($sharedFieldGroup->collections ?? [] as $collection) {
-                            $collectionIndex = array_search($collection, array_column($config->config->collections, 'name'));
-                            if ($collectionIndex !== false) {
-                                //We found a matching collection in the NetlifyCMS config so we should fill the fields from our shared group
-                                $config->config->collections[$collectionIndex]->fields = $sharedFieldGroup->fields;
-                            }
+            //Merge Field groups to collections
+            if (file_exists($fieldsFile)) {
+                $fieldsConfig = json_decode(file_get_contents($fieldsFile));
+                //Copy shared fields to all relevant collections
+                foreach ($fieldsConfig ?? [] as $sharedFieldGroup) {
+                    foreach ($sharedFieldGroup->collections ?? [] as $collection) {
+                        $collectionIndex = array_search($collection, array_column($config->config->collections, 'name'));
+                        if ($collectionIndex !== false) {
+                            //We found a matching collection in the NetlifyCMS config so we should fill the fields from our shared group
+                            $config->config->collections[$collectionIndex]->fields = $sharedFieldGroup->fields;
                         }
                     }
                 }
             }
-
-            return $config;
         }
 
-        public
-        static function render()
-        {
-            include(__DIR__ . './../includes/templates/netlify-cms.php');
-        }
+        return $config;
+    }
 
-        public
-        static function usesNetlifyIdentity()
-        {
-            $config = self::getConfig(false);
-            return isset($config->config->backend->name) && $config->config->backend->name === 'git-gateway';
-        }
 
-        public
-        static function outputNetlifyIdentityWidget()
-        {
-            //https://www.netlifycms.org/docs/add-to-your-site/#add-the-netlify-identity-widget
-            if (self::usesNetlifyIdentity()) {
-                echo '<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>';
-            }
-        }
+    public static function render()
+    {
+        include(__DIR__ . './../includes/templates/netlify-cms.php');
+    }
 
-        public
-        static function outputNetlifyIdentityScript()
-        {
-            //https://www.netlifycms.org/docs/add-to-your-site/#add-the-netlify-identity-widget
-            if (self::usesNetlifyIdentity()) {
-                echo '
+    public static function usesNetlifyIdentity()
+    {
+        $config = self::getConfig(false);
+        return isset($config->config->backend->name) && $config->config->backend->name === 'git-gateway';
+    }
+
+    public static function outputNetlifyIdentityWidget()
+    {
+        //https://www.netlifycms.org/docs/add-to-your-site/#add-the-netlify-identity-widget
+        if (self::usesNetlifyIdentity()) {
+            echo '<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>';
+        }
+    }
+
+    public static function outputNetlifyIdentityScript()
+    {
+        //https://www.netlifycms.org/docs/add-to-your-site/#add-the-netlify-identity-widget
+        if (self::usesNetlifyIdentity()) {
+            echo '
             <script>
                 if (window.netlifyIdentity) {
                     window.netlifyIdentity.on("init", user => {
@@ -99,12 +108,11 @@ class NetlifyCms
                     });
                 }
             </script>';
-            }
-        }
-
-        public
-        static function getMinifiedConfig()
-        {
-            return json_encode(self::getConfig());
         }
     }
+
+    public static function getMinifiedConfig()
+    {
+        return json_encode(self::getConfig());
+    }
+}
