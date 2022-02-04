@@ -10,6 +10,7 @@
         html, body, .container {
             height: 100%;
         }
+
         .container {
             display: grid;
             align-items: center;
@@ -22,11 +23,12 @@
     <div class="inner">
         <h1>NetliPress</h1>
         <p>
-            To get started you need to add at least one <strong>index.json</strong> file in the <strong>/content/pages</strong> directory to serve as the homepage.
+            It looks like you haven't created a homepage yet.
             <br>Check the README file for more info on setting up.
         </p>
         <p>
-            <a class="button" href="https://github.com/jwktje/netlipress">Checkout the repository</a>
+            <a class="button" href="/admin">Go to the CMS</a>
+            <a class="button button-outline" href="https://github.com/jwktje/netlipress">Checkout the repository</a>
         </p>
     </div>
 </div>
