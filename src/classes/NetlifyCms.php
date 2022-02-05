@@ -16,7 +16,7 @@ class NetlifyCms
         $config = json_decode(file_get_contents($configFile));
 
         //Set git gateway based on environment
-        $cmsEnvironment = defined('NETLIFY') ? 'production' : 'local';
+        $cmsEnvironment = getenv('NETLIFY') ? 'production' : 'local';
         if ($cmsEnvironment == 'production' && isset($config->config->backend_production)) {
             unset($config->config->backend);
             $config->config->backend = $config->config->backend_production;
