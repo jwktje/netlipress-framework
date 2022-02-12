@@ -144,13 +144,14 @@ class StaticSite
         $this->emptyBuildFolder();
 
         //Create needed directories in build folder
-        mkdir(SSG_OUTPUT_DIR . '/theme');
+        mkdir(SSG_OUTPUT_DIR . TEMPLATE_URI);
         mkdir(SSG_OUTPUT_DIR . '/post');
 
         //If we are running on Netlify and Mix wasn't triggered we get the Mix assets from the live site, meaning the last build
         if (getenv('NETLIFY') && USE_MIX && !defined('NETLIFY_MIX_TRIGGERED')) {
             $rootUrl = getenv('URL');
             $manifest = file_get_contents($rootUrl . TEMPLATE_URI . '/dist/mix-manifest.json');
+            mkdir(SSG_OUTPUT_DIR . TEMPLATE_URI . '/dist');
             file_put_contents(SSG_OUTPUT_DIR . TEMPLATE_URI . '/dist/mix-manifest.json', $manifest);
             foreach (json_decode($manifest) as $filename => $hash) {
                 $file = file_get_contents($rootUrl . TEMPLATE_URI . '/dist' . $filename);
