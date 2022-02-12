@@ -143,14 +143,24 @@ class StaticSite
         //Empty output dir
         $this->emptyBuildFolder();
 
-        //Create needed directories in build volder
+        //Create needed directories in build folder
         mkdir(SSG_OUTPUT_DIR . '/theme');
         mkdir(SSG_OUTPUT_DIR . '/post');
+
+        //If we are running on Netlify and Mix wasn't triggered we get the Mix assets from the live site, meaning the last build
+        if (getenv('NETLIFY') && !defined('NETLIFY_MIX_TRIGGERED')) {
+            $manifest = file_get_contents(URL . TEMPLATE_DIR . '/dist/mix-manifest.json');
+            file_put_contents(SSG_OUTPUT_DIR . '/theme/dist/mix-manifest.json', $manifest);
+            foreach (json_decode($manifest) as $filename => $hash) {
+                $file = file_get_contents(URL . TEMPLATE_DIR . '/dist' . $filename);
+                file_put_contents(SSG_OUTPUT_DIR . '/theme/dist/' . $filename, $file);
+            }
+        }
 
         //TODO: Create Sitemap.xml?
 
         //Scan through pages and render to HTML
-        if(file_exists(PAGES_DIR)) {
+        if (file_exists(PAGES_DIR)) {
             $pages = $this->getDirContents(PAGES_DIR);
             foreach ($pages as $page) {
                 $this->renderContentJsonToHtml($page, '/page');
@@ -158,7 +168,7 @@ class StaticSite
         }
 
         //Scan through posts and render to HTML
-        if(file_exists(POSTS_DIR)) {
+        if (file_exists(POSTS_DIR)) {
             $posts = $this->getDirContents(POSTS_DIR);
             foreach ($posts as $post) {
                 $this->renderContentJsonToHtml($post);

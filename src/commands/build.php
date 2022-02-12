@@ -12,6 +12,7 @@ exec("git diff --name-only HEAD~1..HEAD", $changedFiles);
 foreach ($changedFiles as $changedFile) {
     if (in_array(pathinfo($changedFile, PATHINFO_EXTENSION), $filesToRunMixFor)) {
         exec('npm run prod');
+        define('NETLIFY_MIX_TRIGGERED', true);
         break;
     }
 }
