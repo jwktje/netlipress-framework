@@ -149,10 +149,11 @@ class StaticSite
 
         //If we are running on Netlify and Mix wasn't triggered we get the Mix assets from the live site, meaning the last build
         if (getenv('NETLIFY') && !defined('NETLIFY_MIX_TRIGGERED')) {
-            $manifest = file_get_contents(URL . TEMPLATE_DIR . '/dist/mix-manifest.json');
+            $rootUrl = getenv('URL');
+            $manifest = file_get_contents($rootUrl . TEMPLATE_DIR . '/dist/mix-manifest.json');
             file_put_contents(SSG_OUTPUT_DIR . '/theme/dist/mix-manifest.json', $manifest);
             foreach (json_decode($manifest) as $filename => $hash) {
-                $file = file_get_contents(URL . TEMPLATE_DIR . '/dist' . $filename);
+                $file = file_get_contents($rootUrl . TEMPLATE_DIR . '/dist' . $filename);
                 file_put_contents(SSG_OUTPUT_DIR . '/theme/dist/' . $filename, $file);
             }
         }
