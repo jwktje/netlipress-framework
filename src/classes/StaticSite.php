@@ -151,11 +151,11 @@ class StaticSite
         if (getenv('NETLIFY') && USE_MIX && !defined('NETLIFY_MIX_TRIGGERED')) {
             $rootUrl = getenv('URL');
             $manifest = file_get_contents($rootUrl . TEMPLATE_URI . '/dist/mix-manifest.json');
-            mkdir('.' . TEMPLATE_DIR . '/dist');
-            file_put_contents('.' . TEMPLATE_DIR . '/dist/mix-manifest.json', $manifest);
+            mkdir(APP_ROOT . TEMPLATE_DIR . '/dist');
+            file_put_contents(APP_ROOT . TEMPLATE_DIR . '/dist/mix-manifest.json', $manifest);
             foreach (json_decode($manifest) as $filename => $hash) {
                 $file = file_get_contents($rootUrl . TEMPLATE_URI . '/dist' . $filename);
-                file_put_contents('.' . TEMPLATE_DIR . '/dist' . $filename, $file);
+                file_put_contents(APP_ROOT . TEMPLATE_DIR . '/dist' . $filename, $file);
             }
         }
 
