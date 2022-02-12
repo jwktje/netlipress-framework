@@ -2,12 +2,22 @@
 require './config/netlipress.php';
 require './vendor/autoload.php';
 
-//Only run Laravel Mix when committing yourself, not the CMS. Use [skip-mix] if you want to also skip it on your own commit
-exec(" git log -1 --pretty=%B", $commitMessage);
-if(isset($commitMessage[0]) && !str_contains($commitMessage[0], '[skip-mix]')) {
-    exec('npm run prod');
+/**
+ * LARAVEL MIX
+ * Only run when the commit contains js or scss files
+ */
+$filesToRunMixFor = ['js', 'scss'];
+//Get files changed in the latest commit
+exec("git diff --name-only HEAD~1..HEAD", $changedFiles);
+foreach ($changedFiles as $changedFile) {
+    if (in_array(pathinfo($changedFile, PATHINFO_EXTENSION), $filesToRunMixFor)) {
+        exec('npm run prod');
+        break;
+    }
 }
 
-//Run the static site generator
+/**
+ * STATIC SITE GENERATOR
+ */
 $ssg = new Netlipress\StaticSite();
 $ssg->generate();
