@@ -1,8 +1,7 @@
 # Netlipress Framework
 
-Default config
+[Check out the readme for this project here](https://github.com/jwktje/netlipress)
 
-```
-define('APP_ROOT', __DIR__);
-define('DEBUG', true);
-```
+To-Do:
+- [ ] Fix regular linebreak in Markdown. It now shows backslash in the resulting html
+- [ ] Throw error if config is invalid JSON

@@ -11,7 +11,7 @@ function wp_nav_menu($args)
             $menuData = json_decode(file_get_contents($menuFile));
             $menuData->{'menu-items'} = $menuData->{'menu-items'} ?? [];
 
-            $navMenu = '<ul id="' . $args["menu_id"] . '" class="menu">';
+            $navMenu = '<ul id="' . $args["menu_id"] . '" class="'. $args['menu_class'] ?? 'menu' . '">';
             foreach ($menuData->{'menu-items'} as $navItem) {
                 $class = "menu-item";
                 $class .= $navItem->class ? " " . $navItem->class : '';
