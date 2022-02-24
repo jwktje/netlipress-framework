@@ -6,7 +6,7 @@ require './vendor/autoload.php';
  * LARAVEL MIX
  * Only run when the commit contains js or scss files
  */
-$filesToRunMixFor = ['js', 'scss'];
+$filesToRunMixFor = ['js', 'scss', 'php'];
 //Get files changed in the latest commit
 exec("git diff --name-only HEAD~1..HEAD", $changedFiles);
 foreach ($changedFiles as $changedFile) {
