@@ -1,13 +1,11 @@
 <?php
 
-
 namespace Netlipress;
 
 class Sitemap
 {
     public static function returnSitemap()
     {
-
         $output = APP_ROOT . PUBLIC_DIR;
         $sitemapFile = $output . '/sitemap.xml';
         $cacheTime = 3600; //in seconds
@@ -25,6 +23,11 @@ class Sitemap
             //Get all known collections
             $collections = Router::getKnownCollections();
 
+            //If there are blog posts, add the blog home to the sitemap
+            if (!empty(self::getPathsFromDir('post'))) {
+                $paths[] = self::formatPath(BLOG_HOME);
+            }
+
             //Get paths under each collection
             foreach ($collections as $collection) {
                 $paths = array_merge($paths, self::getPathsFromDir($collection));
@@ -36,12 +39,14 @@ class Sitemap
                 $generator->addURL($path, new \DateTime());
             }
 
-            //Write the sitemap
-            $generator->flush();
-            $generator->finalize();
-
-            //Return the sitemap
-            self::outputSitemap();
+            if(!empty($paths)) {
+                //Write the sitemap
+                $generator->flush();
+                $generator->finalize();
+                self::outputSitemap();
+            } else {
+                exit('No content found to add to the sitemap');
+            }
         }
     }
 
@@ -89,6 +94,5 @@ class Sitemap
         $output = APP_ROOT . PUBLIC_DIR;
         header('Content-Type: application/xml; charset=utf-8');
         echo file_get_contents($output . '/sitemap.xml');
-        return;
     }
 }
