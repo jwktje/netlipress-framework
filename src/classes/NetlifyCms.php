@@ -71,7 +71,6 @@ class NetlifyCms
             }
 
             //Scan all block template files for a PHPDoc that has field definitions. And if they are unique, add them to the shared field group
-            //Go through all paths
             foreach (new \DirectoryIterator(TEMPLATE_BLOCKS_DIR) as $blockFile) {
                 //Only handle php files
                 if (!$blockFile->isDot() && $blockFile->isFile() && $blockFile->getExtension() == 'php') {
@@ -90,9 +89,13 @@ class NetlifyCms
                                         //The collection exists, so find the index of the blocks field on this collection
                                         $blocksFieldIndex = array_search('blocks', array_column($config->config->collections[$collectionIndex]->fields, 'name'));
                                         if ($blocksFieldIndex !== false) {
+                                            //If no types are set in the config json, add types as an array
+                                            if(!isset($config->config->collections[$collectionIndex]->fields[$blocksFieldIndex]->types)) {
+                                                $config->config->collections[$collectionIndex]->fields[$blocksFieldIndex]->types = [];
+                                            }
                                             //There is a blocks field. So check if this PHPDoc has a unique section, so we don't overwrite an explicit config
                                             $sectionTypeIndex = array_search($phpDocData['name'], array_column($config->config->collections[$collectionIndex]->fields[$blocksFieldIndex]->types, 'name'));
-                                            if ($sectionTypeIndex == false) {
+                                            if ($sectionTypeIndex === false) {
                                                 //It is unique, so add block to blocks widget
                                                 $config->config->collections[$collectionIndex]->fields[$blocksFieldIndex]->types[] = (object) $phpDocData;
                                             }
@@ -105,7 +108,6 @@ class NetlifyCms
                 }
             }
         }
-
         return $config;
     }
 
