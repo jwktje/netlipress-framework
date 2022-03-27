@@ -8,9 +8,9 @@ class Application
     {
         $this->setConfig();
 
-        require __DIR__ . '/../includes/debug.php';
-        require __DIR__ . '/../includes/hooks.php';
-        require __DIR__ . '/../includes/template_tags.php';
+        require_once __DIR__ . '/../includes/debug.php';
+        require_once __DIR__ . '/../includes/hooks.php';
+        require_once __DIR__ . '/../includes/template_tags.php';
     }
 
     public function run()

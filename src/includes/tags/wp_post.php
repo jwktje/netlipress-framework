@@ -62,7 +62,6 @@ function get_posts($args = [])
     );
     // Merge options with defaults
     $args = array_merge($defaults, $args);
-    // debug($args);
 
     //Get files
     $files = glob(APP_ROOT . CONTENT_DIR . '/' . $args['post_type'] . '/*');
