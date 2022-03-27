@@ -8,7 +8,7 @@ class TemplateFormatter
 {
     private $widgetsToFormat = ['markdown'];
 
-    public function shouldFormatField($fieldName, $sectionName = null)
+    public function shouldFormatField($fieldName, $blockName = null)
     {
         $config = NetlifyCms::getConfig();
         $collection = get_post_type();
@@ -19,16 +19,16 @@ class TemplateFormatter
         } else {
             return false;
         }
-        if(!is_null($sectionName)) {
-            $sectionsFieldIndex = array_search('sections', array_column($collectionFieldsConfig, 'name'));
-            if($sectionsFieldIndex !== false) {
-                $sectionsFieldTypesConfig = $collectionFieldsConfig[$sectionsFieldIndex]->types;
-                $currentSectionFieldsIndex = array_search($sectionName, array_column($sectionsFieldTypesConfig, 'name'));
-                if($currentSectionFieldsIndex !== false) {
-                    $currentSectionFieldsConfig = $sectionsFieldTypesConfig[$currentSectionFieldsIndex]->fields;
-                    $currentSectionCurrentFieldIndex = array_search($fieldName, array_column($currentSectionFieldsConfig, 'name'));
-                    if($currentSectionCurrentFieldIndex !== false) {
-                        $fieldConfig = $currentSectionFieldsConfig[$currentSectionCurrentFieldIndex];
+        if(!is_null($blockName)) {
+            $blocksFieldIndex = array_search('blocks', array_column($collectionFieldsConfig, 'name'));
+            if($blocksFieldIndex !== false) {
+                $blocksFieldTypesConfig = $collectionFieldsConfig[$blocksFieldIndex]->types;
+                $currentBlockFieldsIndex = array_search($blockName, array_column($blocksFieldTypesConfig, 'name'));
+                if($currentBlockFieldsIndex !== false) {
+                    $currentBlockFieldsConfig = $blocksFieldTypesConfig[$currentBlockFieldsIndex]->fields;
+                    $currentBlockCurrentFieldIndex = array_search($fieldName, array_column($currentBlockFieldsConfig, 'name'));
+                    if($currentBlockCurrentFieldIndex !== false) {
+                        $fieldConfig = $currentBlockFieldsConfig[$currentBlockCurrentFieldIndex];
                     }
                 }
             } else {
@@ -49,9 +49,9 @@ class TemplateFormatter
         return false;
     }
 
-    public function formatField($fieldName, $data, $sectionName = null)
+    public function formatField($fieldName, $data, $blockName = null)
     {
-        $type = $this->shouldFormatField($fieldName, $sectionName);
+        $type = $this->shouldFormatField($fieldName, $blockName);
         if ($type === 'markdown') {
             return (new \Parsedown)->text($data);
         }

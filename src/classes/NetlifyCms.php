@@ -69,9 +69,103 @@ class NetlifyCms
                     }
                 }
             }
+
+            //Scan all block template files for a PHPDoc that has field definitions. And if they are unique, add them to the shared field group
+            //Go through all paths
+            foreach (new \DirectoryIterator(TEMPLATE_BLOCKS_DIR) as $blockFile) {
+                //Only handle php files
+                if (!$blockFile->isDot() && $blockFile->isFile() && $blockFile->getExtension() == 'php') {
+                    //Scan all PHP files in TEMPLATE_BLOCKS_DIR
+                    $tokens = token_get_all(file_get_contents($blockFile->getPathname()));
+                    foreach ($tokens as $token) {
+                        //Check all tokens in the file
+                        if ($token[0] === T_DOC_COMMENT) {
+                            //We have found a language token in a block file that holds PHPDoc
+                            $phpDocData = self::parseDocBlock($token[1], basename($blockFile->getFilename(), '.php'));
+                            if (!empty($phpDocData)) {
+                                //Add found PHPDoc fields to the blocks field on page and post type
+                                foreach (['page', 'post'] as $collection) {
+                                    $collectionIndex = array_search($collection, array_column($config->config->collections, 'name'));
+                                    if ($collectionIndex !== false) {
+                                        //The collection exists, so find the index of the blocks field on this collection
+                                        $blocksFieldIndex = array_search('blocks', array_column($config->config->collections[$collectionIndex]->fields, 'name'));
+                                        if ($blocksFieldIndex !== false) {
+                                            //There is a blocks field. So check if this PHPDoc has a unique section, so we don't overwrite an explicit config
+                                            $sectionTypeIndex = array_search($phpDocData['name'], array_column($config->config->collections[$collectionIndex]->fields[$blocksFieldIndex]->types, 'name'));
+                                            if ($sectionTypeIndex == false) {
+                                                //It is unique, so add block to blocks widget
+                                                $config->config->collections[$collectionIndex]->fields[$blocksFieldIndex]->types[] = (object) $phpDocData;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         return $config;
+    }
+
+    private static function parseDocBlock($docBlock, $filename)
+    {
+        $returnData = [];
+        $docBlockData = [];
+        // split at each line
+        foreach (preg_split("/(\r?\n)/", $docBlock) as $line) {
+            // if starts with an asterisk
+            if (preg_match('/^(?=\s+?\*[^\/])(.+)/', $line, $matches)) {
+                $info = $matches[1];
+                // remove wrapping whitespace
+                $info = trim($info);
+                // remove leading asterisk
+                $info = preg_replace('/^(\*\s+?)/', '', $info);
+                // if it doesn't start with an "@" symbol then add to the description
+                if ($info[0] == "@") {
+                    // get the name of the param
+                    preg_match('/@(\w+)/', $info, $matches);
+                    $param_name = $matches[1];
+                    // remove the param from the string
+                    $value = str_replace("@$param_name ", '', $info);
+                    // if the param hasn't been added yet, create a key for it
+                    if (!isset($docBlockData[$param_name])) {
+                        $docBlockData[$param_name] = [];
+                    }
+                    // push the param value into place
+                    $docBlockData[$param_name][] = $value;
+                }
+            }
+        }
+        if (isset($docBlockData['netlipress'])) {
+            $returnData['name'] = $filename;
+            $returnData['label'] = $docBlockData['netlipress'][0];
+
+            if (isset($docBlockData['var'])) {
+                foreach ($docBlockData['var'] as $idx => $var) {
+                    $varArray = explode(' ', $var);
+                    $widgetType = $varArray[0];
+                    switch($widgetType) {
+                        case 'select':
+                            $returnData['fields'][$idx] = [
+                                'name' => $varArray[1],
+                                'widget' => $widgetType,
+                                'options' => explode('|', $varArray[2])
+                            ];
+                            break;
+                        default:
+                            $returnData['fields'][$idx] = [
+                                'name' => $varArray[1],
+                                'widget' => $widgetType
+                            ];
+                            break;
+                    }
+                }
+            }
+        }
+
+        return $returnData;
     }
 
 

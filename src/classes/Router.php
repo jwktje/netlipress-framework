@@ -21,14 +21,14 @@ class Router
         }
 
         //If req path is the blog home, setup the query data and render the post index template
-        if ($request['path'] == BLOG_HOME) {
+        if ($request['path'] == BLOG_HOME && file_exists(POSTS_DIR)) {
             $this->blog_home();
             return;
         }
 
         //If req path is sitemap, create and return sitemap
         if ($request['path'] == '/sitemap.xml') {
-            \Netlipress\Sitemap::returnSitemap();
+            (new Sitemap())->returnSitemap();
             return;
         }
 
@@ -178,18 +178,14 @@ class Router
         } elseif ($collection == 'post') {
             $templateToUse = 'single';
         } else {
-            $templateToUse = 'single-' . $collection;
+            $templateToUse = file_exists(APP_ROOT . TEMPLATE_DIR . '/single-'.$collection.'.php') ? 'single-'.$collection : 'single';
         }
 
-        if (!$templateToUse) {
-            $this->notFound('Collection not mapped to a template');
-        } else {
-            global $post, $originalPost;
-            $post = get_post($entry);
-            //Save post for resetting
-            $originalPost = $post;
-            $tpl->render($templateToUse);
-        }
+        global $post, $originalPost;
+        $post = get_post($entry);
+        //Save post for resetting
+        $originalPost = $post;
+        $tpl->render($templateToUse);
     }
 
     /**

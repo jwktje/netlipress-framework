@@ -4,59 +4,72 @@ namespace Netlipress;
 
 class Sitemap
 {
-    public static function returnSitemap()
+    public function returnSitemap()
     {
-        $output = APP_ROOT . PUBLIC_DIR;
-        $sitemapFile = $output . '/sitemap.xml';
+        $sitemapFile = APP_ROOT . PUBLIC_DIR . '/sitemap.xml';
         $cacheTime = 3600; //in seconds
 
         //Check if sitemap is older than 1 hour
         if (file_exists($sitemapFile) && time() - filemtime($sitemapFile) < $cacheTime) {
             //file was generated in last hour, so return it
-            self::outputSitemap();
+            $this->outputSitemap();
         } else {
             //Create a fresh sitemap
-            $baseUrl = home_url();
-            $paths = [];
-            $generator = new \Icamys\SitemapGenerator\SitemapGenerator($baseUrl, $output);
-
-            //Get all known collections
-            $collections = Router::getKnownCollections();
-
-            //If there are blog posts, add the blog home to the sitemap
-            if (!empty(self::getPathsFromDir('post'))) {
-                $paths[] = self::formatPath(BLOG_HOME);
+            $generated = $this->createSitemap();
+            if($generated) {
+                $this->outputSitemap();
+                return;
             }
-
-            //Get paths under each collection
-            foreach ($collections as $collection) {
-                $paths = array_merge($paths, self::getPathsFromDir($collection));
-            }
-
-            //Add all paths to the sitemap
-            foreach ($paths as $path) {
-                $path = self::formatPath($path);
-                $generator->addURL($path, new \DateTime());
-            }
-
-            if(!empty($paths)) {
-                //Write the sitemap
-                $generator->flush();
-                $generator->finalize();
-                self::outputSitemap();
-            } else {
-                exit('No content found to add to the sitemap');
-            }
+            echo 'No content found to add to the sitemap';
         }
     }
 
-    private static function getPathsFromDir($dir)
+    public function createSitemap() {
+        $output = APP_ROOT . PUBLIC_DIR;
+        $baseUrl = home_url();
+        $paths = [];
+        $generator = new \Icamys\SitemapGenerator\SitemapGenerator($baseUrl, $output);
+
+        //Get all known collections
+        $collections = Router::getKnownCollections();
+
+        //If there are blog posts, add the blog home to the sitemap
+        if (!empty($this->getPathsFromDir('post'))) {
+            $paths[] = $this->formatPath(BLOG_HOME);
+        }
+
+        //Get paths under each collection
+        foreach ($collections as $collection) {
+            $paths = array_merge($paths, $this->getPathsFromDir($collection));
+        }
+
+        //Add all paths to the sitemap
+        foreach ($paths as $path) {
+            $path = $this->formatPath($path);
+            $generator->addURL($path, new \DateTime());
+        }
+
+        if(empty($paths)) {
+            return false;
+        }
+
+        //Write the sitemap
+        $generator->flush();
+        $generator->finalize();
+        return true;
+    }
+
+    private function getPathsFromDir($dir)
     {
         $paths = [];
-        foreach (new \DirectoryIterator(APP_ROOT . CONTENT_DIR . '/' . $dir) as $fileInfo) {
+        $dirToScan = APP_ROOT . CONTENT_DIR . '/' . $dir;
+        if(!file_exists($dirToScan)) {
+            return $paths;
+        }
+        foreach (new \DirectoryIterator($dirToScan) as $fileInfo) {
             if ($fileInfo->isDot()) continue;
             if ($fileInfo->isDir()) {
-                $paths = array_merge($paths, self::getPathsFromDir($dir . '/' . $fileInfo->getBasename()));
+                $paths = array_merge($paths, $this->getPathsFromDir($dir . '/' . $fileInfo->getBasename()));
                 continue;
             } else {
                 if ($fileInfo->getExtension() !== 'json') continue;
@@ -67,7 +80,7 @@ class Sitemap
         return $paths;
     }
 
-    private static function formatPath($path)
+    private function formatPath($path)
     {
         /*
          * Some notes on the Router;
@@ -89,7 +102,7 @@ class Sitemap
         return $filteredPath;
     }
 
-    private static function outputSitemap()
+    private function outputSitemap()
     {
         $output = APP_ROOT . PUBLIC_DIR;
         header('Content-Type: application/xml; charset=utf-8');

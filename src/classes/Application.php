@@ -40,10 +40,10 @@ class Application
 
         //Default values for dynamic constant values that use static constants
         $dynamicConstantDefaults = [
-            'TEMPLATE_DIR' => PUBLIC_DIR . '/theme',
+            'TEMPLATE_DIR' =>  PUBLIC_DIR . TEMPLATE_URI,
             'POSTS_DIR' => APP_ROOT . CONTENT_DIR . '/post',
-            'PAGES_DIR' => APP_ROOT . CONTENT_DIR . '/page',
             'SSG_OUTPUT_DIR' => APP_ROOT . '/build',
+            'TEMPLATE_BLOCKS_DIR' =>  APP_ROOT . PUBLIC_DIR . TEMPLATE_URI . '/template-parts/blocks',
         ];
 
         foreach ($dynamicConstantDefaults as $constantName => $defaultValue) {

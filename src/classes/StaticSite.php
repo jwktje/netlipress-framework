@@ -76,7 +76,7 @@ class StaticSite
         file_put_contents(SSG_OUTPUT_DIR . '/admin/index.html', ob_get_clean());
     }
 
-    private function renderContentJsonToHtml($jsonFileAbsolutePath, $stripFromSlug = null)
+    private function renderContentJsonToHtml($jsonFileAbsolutePath, $collectionSlug)
     {
         //Absolute to relative path and pathinfo
         $relativeFilePath = str_replace(APP_ROOT . CONTENT_DIR, '', $jsonFileAbsolutePath);
@@ -84,8 +84,8 @@ class StaticSite
         $fileRelativeDirname = $pathInfo['dirname'];
 
         //Optionally remove part from the output path
-        if ($stripFromSlug) {
-            $fileRelativeDirname = str_replace($stripFromSlug, '', $fileRelativeDirname);
+        if ($collectionSlug === 'page') {
+            $fileRelativeDirname = str_replace('/page', '', $fileRelativeDirname);
         }
 
         if ($pathInfo['extension'] === 'json') {
@@ -145,7 +145,6 @@ class StaticSite
 
         //Create needed directories in build folder
         mkdir(SSG_OUTPUT_DIR . TEMPLATE_URI);
-        mkdir(SSG_OUTPUT_DIR . '/post');
 
         //If we are running on Netlify and Mix wasn't triggered we get the Mix assets from the live site, meaning the last build
         if (getenv('NETLIFY') && USE_MIX && !defined('NETLIFY_MIX_TRIGGERED')) {
@@ -159,26 +158,25 @@ class StaticSite
             }
         }
 
-        //TODO: Create Sitemap.xml?
-
-        //Scan through pages and render to HTML
-        if (file_exists(PAGES_DIR)) {
-            $pages = $this->getDirContents(PAGES_DIR);
-            foreach ($pages as $page) {
-                $this->renderContentJsonToHtml($page, '/page');
-            }
-        }
-
-        //Scan through posts and render to HTML
-        if (file_exists(POSTS_DIR)) {
-            $posts = $this->getDirContents(POSTS_DIR);
-            foreach ($posts as $post) {
-                $this->renderContentJsonToHtml($post);
-            }
+        $sitemapCreated = (new Sitemap)->createSitemap();
+        if ($sitemapCreated) {
+            copy(APP_ROOT . PUBLIC_DIR . '/sitemap.xml', SSG_OUTPUT_DIR . '/sitemap.xml');
         }
 
         //Create blog home
-        $this->renderBlogHome();
+        if (file_exists(POSTS_DIR)) {
+            $this->renderBlogHome();
+        }
+
+        //TODO: Support for CPT here
+        //Scan trough content types and render HTML
+        $collections = $this->router->getKnownCollections();
+        foreach ($collections as $collection) {
+            $pages = $this->getDirContents(APP_ROOT . CONTENT_DIR . '/' . $collection);
+            foreach ($pages as $page) {
+                $this->renderContentJsonToHtml($page, $collection);
+            }
+        }
 
         //Copy theme images to build directory
         $this->syncDirectoryToBuild('uploads');

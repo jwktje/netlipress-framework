@@ -38,11 +38,11 @@ function body_class() {
 
 function render_blocks()
 {
-    foreach ($GLOBALS['post']->sections as $section) {
-        $blockFile = APP_ROOT . TEMPLATE_DIR . '/template-parts/blocks/' . $section->type . '.php';
+    foreach ($GLOBALS['post']->blocks as $currentBlock) {
+        $blockFile = APP_ROOT . TEMPLATE_DIR . '/template-parts/blocks/' . $currentBlock->type . '.php';
         if (file_exists($blockFile)) {
             global $block;
-            $block = $section;
+            $block = $currentBlock;
             include($blockFile);
         }
     }
@@ -50,7 +50,7 @@ function render_blocks()
 
 function the_content()
 {
-    if (empty($GLOBALS['post']->sections)) {
+    if (empty($GLOBALS['post']->blocks)) {
         the_field('body');
     } else {
         render_blocks();
