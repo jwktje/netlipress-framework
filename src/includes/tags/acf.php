@@ -19,8 +19,10 @@ function get_field($fieldName, $from = false)
         //Settings are assumed to be prefixed by a group corresponding to the settings json filename. eg; socials_facebook
         $fieldNameArr = explode('_',$fieldName);
         $settings = get_settings($fieldNameArr[0]);
-        if(isset($settings->{$fieldNameArr[1]})) {
-            return $settings->{$fieldNameArr[1]};
+        unset($fieldNameArr[0]);
+        $fieldName = implode('_',$fieldNameArr);
+        if(isset($settings->{$fieldName})) {
+            return $settings->{$fieldName};
         }
     } elseif($from !== false) {
         //Possibly get field from specific entry/post
