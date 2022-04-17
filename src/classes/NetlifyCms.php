@@ -147,19 +147,31 @@ class NetlifyCms
             if (isset($docBlockData['var'])) {
                 foreach ($docBlockData['var'] as $idx => $var) {
                     $varArray = explode(' ', $var);
+                    //Extract required from array and fix the array
+                    $required = true;
+                    if (($key = array_search('optional', $varArray)) !== false) {
+                        $required = false;
+                        unset($varArray[$key]);
+                        $varArray = array_values($varArray);
+                    }
+                    //Setup shared vars
                     $widgetType = $varArray[0];
+                    $fieldName = $varArray[1];
+                    //Fill config by field type;
                     switch($widgetType) {
                         case 'select':
                             $returnData['fields'][$idx] = [
-                                'name' => $varArray[1],
+                                'name' => $fieldName,
                                 'widget' => $widgetType,
-                                'options' => explode('|', $varArray[2])
+                                'options' => explode('|', $varArray[2]),
+                                'required' => $required
                             ];
                             break;
                         default:
                             $returnData['fields'][$idx] = [
-                                'name' => $varArray[1],
-                                'widget' => $widgetType
+                                'name' => $fieldName,
+                                'widget' => $widgetType,
+                                'required' => $required
                             ];
                             break;
                     }
