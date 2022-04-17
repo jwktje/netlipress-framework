@@ -31,8 +31,15 @@ function get_the_permalink($file = false)
 {
     $entryFile = $file ? $file : $GLOBALS['post']->path;
     $path_parts = pathinfo($entryFile);
+    $filename = $path_parts['filename'];
     $slug_base = str_replace(APP_ROOT . CONTENT_DIR, '', $path_parts['dirname']);
-    return $slug_base . '/' . $path_parts['filename'];
+    $slug_base = $slug_base === '/page' ? '' : $slug_base;
+    $filename = $filename === 'index' ? '' : $filename;
+    return $slug_base . '/' . $filename;
+}
+
+function get_permalink($file = false) {
+    return get_the_permalink($file);
 }
 
 function the_permalink($file = false)
