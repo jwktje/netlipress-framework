@@ -37,8 +37,8 @@ function get_the_permalink($file = false)
     if ($slug_base === '/page') {
         $slug_base = '/';
     }
-    if (str_contains($slug_base, '/page/')) {
-        $slug_base = str_replace('/page/', '', $slug_base);
+    if (str_contains($slug_base, '/page')) {
+        $slug_base = str_replace('/page', '', $slug_base);
     }
     $filename = $filename === 'index' ? '' : $filename;
     return $slug_base . $filename;
