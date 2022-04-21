@@ -145,6 +145,7 @@ class NetlifyCms
             $returnData['label'] = $docBlockData['netlipress'][0];
 
             if (isset($docBlockData['var'])) {
+                $nestedFieldIndex = false;
                 foreach ($docBlockData['var'] as $idx => $var) {
                     $varArray = explode(' ', $var);
                     //Extract required from array and fix the array
@@ -154,17 +155,47 @@ class NetlifyCms
                         unset($varArray[$key]);
                         $varArray = array_values($varArray);
                     }
-                    //Setup shared vars
+
+                    //Get widget type. Could be of type nest
                     $widgetType = $varArray[0];
+
+                    //Extract nested parameter and fix the array
+                    if ($nestedFieldIndex && $varArray[0] === '-') {
+                        unset($varArray[0]);
+                        $varArray = array_values($varArray);
+                        $nestedWidgetType = $varArray[0];
+                        $widgetType = 'nested';
+                    } else {
+                        $nestedFieldIndex = false;
+                    }
+
+                    //Get fieldname
                     $fieldName = $varArray[1];
+
                     //Fill config by field type;
                     switch($widgetType) {
                         case 'select':
                             $returnData['fields'][$idx] = [
                                 'name' => $fieldName,
-                                'widget' => $widgetType,
+                                'widget' => 'select',
                                 'options' => explode('|', $varArray[2]),
                                 'required' => $required
+                            ];
+                            break;
+                        case 'list':
+                            $nestedFieldIndex = $idx;
+                            $returnData['fields'][$idx] = [
+                                'name' => $fieldName,
+                                'widget' => 'list',
+                                'required' => $required,
+                                'fields' => []
+                            ];
+                            break;
+                        case 'nested':
+                            $returnData['fields'][$nestedFieldIndex]['fields'][] = [
+                                'name' => $fieldName,
+                                'widget' => $nestedWidgetType,
+                                'required' => $required,
                             ];
                             break;
                         default:
