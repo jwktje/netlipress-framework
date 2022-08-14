@@ -13,13 +13,21 @@ function wp_get_attachment_image($url, $size = 'full', $icon = false, $attr = []
 {
     if (!$url) return;
     $url = wp_get_attachment_image_uri($url);
-    ;
 
-    if ($size == 'thumb') {
-        $url .= '?size=150x150';
-        $sizes = 'width="150" height="150"';
+    if (is_array($size)) {
+        if(getenv('NETLIFY')) {
+            $url .= '?nf_resize=fit&w=' . $size[0] . '&h=' . $size[1];
+        }
+        $sizes = 'width="' . $size[0] . '" height="' . $size[1] . '"';
     } else {
-        $sizes = getimagesize(APP_ROOT . PUBLIC_DIR . $url)[3];
+        if ($size == 'thumb') {
+            if(getenv('NETLIFY')) {
+                $url .= '?nf_resize=fit&w=150&h=150';
+            }
+            $sizes = 'width="150" height="150"';
+        } else {
+            $sizes = getimagesize(APP_ROOT . PUBLIC_DIR . $url)[3];
+        }
     }
 
     $defaultsAttr = [
@@ -34,7 +42,7 @@ function wp_get_attachment_image($url, $size = 'full', $icon = false, $attr = []
     );
 
     $html = "<img src='$url' $sizes";
-    foreach($attr as $name => $value) {
+    foreach ($attr as $name => $value) {
         $html .= " $name=" . '"' . $value . '"';
     }
     $html .= "/>";

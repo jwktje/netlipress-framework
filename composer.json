@@ -19,7 +19,6 @@
   "minimum-stability": "dev",
   "require": {
     "erusev/parsedown": "^1.7",
-    "intervention/image" : "^2.5.1",
     "icamys/php-sitemap-generator" : "^4.3.1"
   },
   "autoload": {

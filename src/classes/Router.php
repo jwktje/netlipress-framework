@@ -32,18 +32,6 @@ class Router
             return;
         }
 
-        //Handle resized image requests
-        if(isset($requestedFile['extension']) && in_array($requestedFile['extension'],['jpg','png']) && strpos($request['query'], 'size') !== false) {
-            parse_str($request['query'],$query);
-            if(isset($query['size'])) {
-                $sizes = explode('x',$query['size']);
-                //This returns an image scaled by the server on the fly
-                $image = new ImageResizer($request['path']);
-                $image->resizeImage($sizes[0],$sizes[1]);
-                return;
-            }
-        }
-
         //Handle request for a page in a collection by default. Returns 404 if entry doesn't exist
         $this->handleCollectionRequest($request);
 
