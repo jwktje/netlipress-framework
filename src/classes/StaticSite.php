@@ -182,6 +182,7 @@ class StaticSite
         $this->syncDirectoryToBuild('uploads');
         $this->syncDirectoryToBuild('theme/img');
         $this->syncDirectoryToBuild('theme/dist');
+        $this->syncDirectoryToBuild('theme/fonts');
 
         //Create Netlify CMS admin index file from dynamic json config
         $this->createNetlifyCmsAdminFolder();
