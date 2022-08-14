@@ -160,7 +160,7 @@ class NetlifyCms
                     $widgetType = $varArray[0];
 
                     //Extract nested parameter and fix the array
-                    if ($nestedFieldIndex && $varArray[0] === '-') {
+                    if ($nestedFieldIndex !== false && $varArray[0] === '-') {
                         unset($varArray[0]);
                         $varArray = array_values($varArray);
                         $nestedWidgetType = $varArray[0];
