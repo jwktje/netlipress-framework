@@ -33,7 +33,8 @@ function wp_get_attachment_image($url, $size = 'full', $icon = false, $attr = []
     $defaultsAttr = [
         'class' => '',
         'loading' => 'lazy',
-        'alt' => $alt = basename($url)
+        'alt' => basename($url),
+        'title' => basename($url)
     ];
 
     $attr = array_merge(
