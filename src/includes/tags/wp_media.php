@@ -16,13 +16,13 @@ function wp_get_attachment_image($url, $size = 'full', $icon = false, $attr = []
 
     if (is_array($size)) {
         if(getenv('NETLIFY')) {
-            $url .= '?nf_resize=fit&w=' . $size[0] . '&h=' . $size[1];
+            $url .= '?nf_resize=smartcrop&w=' . $size[0] . '&h=' . $size[1];
         }
         $sizes = 'width="' . $size[0] . '" height="' . $size[1] . '"';
     } else {
         if ($size == 'thumb') {
             if(getenv('NETLIFY')) {
-                $url .= '?nf_resize=fit&w=150&h=150';
+                $url .= '?nf_resize=smartcrop&w=150&h=150';
             }
             $sizes = 'width="150" height="150"';
         } else {
