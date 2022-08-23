@@ -185,8 +185,8 @@ class StaticSite
         $this->syncDirectoryToBuild('theme/fonts');
 
         //If redirect file exists, move it over
-        if(file_exists(APP_ROOT . '_redirects')) {
-            copy(APP_ROOT . '_redirects', SSG_OUTPUT_DIR . '/_redirects');
+        if(file_exists(APP_ROOT . '/_redirects')) {
+            copy(APP_ROOT . '/_redirects', SSG_OUTPUT_DIR . '/_redirects');
         }
 
         //Create Netlify CMS admin index file from dynamic json config
