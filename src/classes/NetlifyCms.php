@@ -155,10 +155,8 @@ class NetlifyCms
                         unset($varArray[$key]);
                         $varArray = array_values($varArray);
                     }
-
                     //Get widget type. Could be of type nest
                     $widgetType = $varArray[0];
-
                     //Extract nested parameter and fix the array
                     if ($nestedFieldIndex !== false && $varArray[0] === '-') {
                         unset($varArray[0]);
@@ -253,5 +251,14 @@ class NetlifyCms
     public static function getMinifiedConfig()
     {
         return json_encode(self::getConfig());
+    }
+
+    public static function debugConfig()
+    {
+        if(isset($_GET['debug'])) :
+            echo '<pre>';
+            print_r(json_encode(self::getConfig(), JSON_PRETTY_PRINT));
+            echo '</pre>';
+        endif;
     }
 }

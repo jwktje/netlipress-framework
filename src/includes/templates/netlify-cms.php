@@ -18,5 +18,8 @@
     const {CMS, initCMS: init} = window
     init(<?=\Netlipress\NetlifyCms::getMinifiedConfig();?>);
 </script>
+
+<?php \Netlipress\NetlifyCms::debugConfig();?>
+
 </body>
 </html>
