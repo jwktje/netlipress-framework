@@ -119,16 +119,17 @@ class StaticSite
 
     private function syncDirectoryToBuild($path)
     {
-        if (!file_exists(SSG_OUTPUT_DIR . '/' . $path)) {
-            mkdir(SSG_OUTPUT_DIR . '/' . $path);
-        }
-
         $searchDir = APP_ROOT . PUBLIC_DIR . '/' . $path;
+        if(file_exists($searchDir)) {
+            if (!file_exists(SSG_OUTPUT_DIR . '/' . $path)) {
+                mkdir(SSG_OUTPUT_DIR . '/' . $path);
+            }
 
-        foreach (new \DirectoryIterator($searchDir) as $fileInfo) {
-            $name = $fileInfo->getFilename();
-            if (!$fileInfo->isDot() && $fileInfo->isFile() && $name !== '.gitkeep') {
-                copy($fileInfo->getPathname(), SSG_OUTPUT_DIR . '/' . $path . '/' . $name);
+            foreach (new \DirectoryIterator($searchDir) as $fileInfo) {
+                $name = $fileInfo->getFilename();
+                if (!$fileInfo->isDot() && $fileInfo->isFile() && $name !== '.gitkeep') {
+                    copy($fileInfo->getPathname(), SSG_OUTPUT_DIR . '/' . $path . '/' . $name);
+                }
             }
         }
     }
