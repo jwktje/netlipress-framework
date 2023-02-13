@@ -64,7 +64,14 @@ class NetlifyCms
                         $collectionIndex = array_search($collection, array_column($config->config->collections, 'name'));
                         if ($collectionIndex !== false) {
                             //We found a matching collection in the NetlifyCMS config so we should fill the fields from our shared group
-                            $config->config->collections[$collectionIndex]->fields = $sharedFieldGroup->fields;
+                            if (isset($config->config->collections[$collectionIndex]->fields)) {
+                                //Merge if it already had fields
+                                $config->config->collections[$collectionIndex]->fields = array_merge($config->config->collections[$collectionIndex]->fields, $sharedFieldGroup->fields);
+                            } else {
+                                //Add if it was new
+                                $config->config->collections[$collectionIndex]->fields = $sharedFieldGroup->fields;
+                            }
+
                         }
                     }
                 }
@@ -90,14 +97,14 @@ class NetlifyCms
                                         $blocksFieldIndex = array_search('blocks', array_column($config->config->collections[$collectionIndex]->fields, 'name'));
                                         if ($blocksFieldIndex !== false) {
                                             //If no types are set in the config json, add types as an array
-                                            if(!isset($config->config->collections[$collectionIndex]->fields[$blocksFieldIndex]->types)) {
+                                            if (!isset($config->config->collections[$collectionIndex]->fields[$blocksFieldIndex]->types)) {
                                                 $config->config->collections[$collectionIndex]->fields[$blocksFieldIndex]->types = [];
                                             }
                                             //There is a blocks field. So check if this PHPDoc has a unique section, so we don't overwrite an explicit config
                                             $sectionTypeIndex = array_search($phpDocData['name'], array_column($config->config->collections[$collectionIndex]->fields[$blocksFieldIndex]->types, 'name'));
                                             if ($sectionTypeIndex === false) {
                                                 //It is unique, so add block to blocks widget
-                                                $config->config->collections[$collectionIndex]->fields[$blocksFieldIndex]->types[] = (object) $phpDocData;
+                                                $config->config->collections[$collectionIndex]->fields[$blocksFieldIndex]->types[] = (object)$phpDocData;
                                             }
                                         }
                                     }
@@ -171,7 +178,7 @@ class NetlifyCms
                     $fieldName = $varArray[1];
 
                     //Fill config by field type;
-                    switch($widgetType) {
+                    switch ($widgetType) {
                         case 'select':
                             $returnData['fields'][$idx] = [
                                 'name' => $fieldName,
@@ -255,7 +262,7 @@ class NetlifyCms
 
     public static function debugConfig()
     {
-        if(isset($_GET['debug'])) :
+        if (isset($_GET['debug'])) :
             echo '<pre>';
             print_r(json_encode(self::getConfig(), JSON_PRETTY_PRINT));
             echo '</pre>';

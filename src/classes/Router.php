@@ -146,7 +146,7 @@ class Router
 
         global $loop, $post;
         $loop = $foundPosts;
-        $post = (object)['title' => 'Blog']; //TODO: Possibly improve. This makes the page title work but maybe it should be a config value
+        $post = (object)['title' => 'Blog', 'path' => BLOG_HOME]; //TODO: Possibly improve. This makes the page title work but maybe it should be a config value
 
         $tpl->render('index');
     }
