@@ -28,7 +28,7 @@ class TemplateFormatter
                     $currentBlockFieldsConfig = $blocksFieldTypesConfig[$currentBlockFieldsIndex]->fields;
                     $currentBlockCurrentFieldIndex = array_search($fieldName, array_column($currentBlockFieldsConfig, 'name'));
                     if($currentBlockCurrentFieldIndex !== false) {
-                        $fieldConfig = $currentBlockFieldsConfig[$currentBlockCurrentFieldIndex];
+                        $fieldConfig = (object) $currentBlockFieldsConfig[$currentBlockCurrentFieldIndex];
                     }
                 }
             } else {
@@ -38,7 +38,7 @@ class TemplateFormatter
             $fieldConfigIndex = array_search($fieldName, array_column($collectionFieldsConfig, 'name'));
             if($fieldConfigIndex !== false) {
                 //We found a matching collection in the NetlifyCMS config
-                $fieldConfig = $collectionFieldsConfig[$fieldConfigIndex];
+                $fieldConfig = (object) $collectionFieldsConfig[$fieldConfigIndex];
             } else {
                 return false;
             }
