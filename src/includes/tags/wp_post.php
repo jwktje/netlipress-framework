@@ -40,6 +40,9 @@ function get_the_permalink($file = false)
     if (str_contains($slug_base, '/page')) {
         $slug_base = str_replace('/page', '', $slug_base);
     }
+    if($slug_base === '/post') {
+        $slug_base .= '/';
+    }
     $filename = $filename === 'index' ? '' : $filename;
     return $slug_base . $filename;
 }
