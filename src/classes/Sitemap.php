@@ -10,13 +10,13 @@ class Sitemap
         $cacheTime = 3600; //in seconds
 
         //Check if sitemap is older than 1 hour
-        if (file_exists($sitemapFile) && time() - filemtime($sitemapFile) < $cacheTime) {
+        if (file_exists($sitemapFile) && time() - filemtime($sitemapFile) < $cacheTime && false) {
             //file was generated in last hour, so return it
             $this->outputSitemap();
         } else {
             //Create a fresh sitemap
             $generated = $this->createSitemap();
-            if($generated) {
+            if ($generated) {
                 $this->outputSitemap();
                 return;
             }
@@ -24,7 +24,8 @@ class Sitemap
         }
     }
 
-    public function createSitemap() {
+    public function createSitemap()
+    {
         $output = APP_ROOT . PUBLIC_DIR;
         $baseUrl = home_url();
         $paths = [];
@@ -45,11 +46,15 @@ class Sitemap
 
         //Add all paths to the sitemap
         foreach ($paths as $path) {
+            //Check if this resource wants to be included
+            if ($this->excludePathFromSitemap($path)) {
+                continue;
+            }
             $path = $this->formatPath($path);
             $generator->addURL($path, new \DateTime());
         }
 
-        if(empty($paths)) {
+        if (empty($paths)) {
             return false;
         }
 
@@ -63,7 +68,7 @@ class Sitemap
     {
         $paths = [];
         $dirToScan = APP_ROOT . CONTENT_DIR . '/' . $dir;
-        if(!file_exists($dirToScan)) {
+        if (!file_exists($dirToScan)) {
             return $paths;
         }
         foreach (new \DirectoryIterator($dirToScan) as $fileInfo) {
@@ -107,5 +112,16 @@ class Sitemap
         $output = APP_ROOT . PUBLIC_DIR;
         header('Content-Type: application/xml; charset=utf-8');
         echo file_get_contents($output . '/sitemap.xml');
+    }
+
+    private function excludePathFromSitemap($path)
+    {
+        $absolutePath = APP_ROOT . CONTENT_DIR . $path . '.json';
+        $jsonFile = @file_get_contents($absolutePath);
+        if ($jsonFile) {
+            $fileData = json_decode($jsonFile);
+            return $fileData->hide_from_sitemap ?? false;
+        }
+        return false;
     }
 }
