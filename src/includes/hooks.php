@@ -12,8 +12,11 @@ function wp_head()
 
     //Mock enqueue of stylesheet
     if (USE_MIX) {
-        $cssFile = json_decode(file_get_contents(APP_ROOT . TEMPLATE_DIR . '/dist/mix-manifest.json'))->{'/style.css'};
-        echo '<link rel="stylesheet" href="' . TEMPLATE_URI . '/dist' . $cssFile . '">';
+        $manifest = @file_get_contents(APP_ROOT . TEMPLATE_DIR . '/dist/mix-manifest.json');
+        if ($manifest) {
+            $cssFile = json_decode($manifest)->{'/style.css'};
+            echo '<link rel="stylesheet" href="' . TEMPLATE_URI . '/dist' . $cssFile . '">';
+        }
     } else {
         echo '<link rel="stylesheet" href="/theme/style.css">';
     }
@@ -23,14 +26,15 @@ function wp_head()
     output_og_tags();
 
     //GTM optional include
-    if(GTM_ACTIVE) {
+    if (GTM_ACTIVE) {
         gtm_head();
     }
 }
 
-function wp_body_open() {
+function wp_body_open()
+{
     //GTM optional include
-    if(GTM_ACTIVE) {
+    if (GTM_ACTIVE) {
         gtm_body();
     }
 }
@@ -39,8 +43,11 @@ function wp_footer()
 {
     //Mock enqueue of JS
     if (USE_MIX) {
-        $jsFile = json_decode(file_get_contents(APP_ROOT . TEMPLATE_DIR . '/dist/mix-manifest.json'))->{'/actions.js'};
-        echo '<script src="' . TEMPLATE_URI . '/dist' . $jsFile . '"></script>';
+        $manifest = @file_get_contents(APP_ROOT . TEMPLATE_DIR . '/dist/mix-manifest.json');
+        if ($manifest) {
+            $jsFile = json_decode($manifest)->{'/actions.js'};
+            echo '<script src="' . TEMPLATE_URI . '/dist' . $jsFile . '"></script>';
+        }
     } else {
         echo '<script src="/theme/dist/actions.js"></script>';
     }

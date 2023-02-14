@@ -138,25 +138,34 @@ class StaticSite
     {
         //Optionally create output dir
         if (!file_exists(SSG_OUTPUT_DIR)) {
-            mkdir(SSG_OUTPUT_DIR);
+            if (!mkdir($concurrentDirectory = SSG_OUTPUT_DIR) && !is_dir($concurrentDirectory)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+            }
         }
 
         //Empty output dir
         $this->emptyBuildFolder();
 
         //Create needed directories in build folder
-        mkdir(SSG_OUTPUT_DIR . TEMPLATE_URI);
+        if (!mkdir($concurrentDirectory = SSG_OUTPUT_DIR . TEMPLATE_URI) && !is_dir($concurrentDirectory)) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+        }
 
         //If we are running on Netlify and Mix wasn't triggered we get the Mix assets from the live site, meaning the last build
         if (getenv('NETLIFY') && USE_MIX && !defined('NETLIFY_MIX_TRIGGERED')) {
             $rootUrl = getenv('URL');
-            $manifest = file_get_contents($rootUrl . TEMPLATE_URI . '/dist/mix-manifest.json');
-            mkdir(APP_ROOT . TEMPLATE_DIR . '/dist');
-            file_put_contents(APP_ROOT . TEMPLATE_DIR . '/dist/mix-manifest.json', $manifest);
-            foreach (json_decode($manifest) as $filename => $hash) {
-                $file = file_get_contents($rootUrl . TEMPLATE_URI . '/dist' . $filename);
-                file_put_contents(APP_ROOT . TEMPLATE_DIR . '/dist' . $filename, $file);
+            $manifest = @file_get_contents($rootUrl . TEMPLATE_URI . '/dist/mix-manifest.json');
+            if($manifest) {
+                if (!mkdir($concurrentDirectory = APP_ROOT . TEMPLATE_DIR . '/dist') && !is_dir($concurrentDirectory)) {
+                    throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+                }
+                file_put_contents(APP_ROOT . TEMPLATE_DIR . '/dist/mix-manifest.json', $manifest);
+                foreach (json_decode($manifest) ?? [] as $filename => $hash) {
+                    $file = file_get_contents($rootUrl . TEMPLATE_URI . '/dist' . $filename);
+                    file_put_contents(APP_ROOT . TEMPLATE_DIR . '/dist' . $filename, $file);
+                }
             }
+
         }
 
         $sitemapCreated = (new Sitemap)->createSitemap();
