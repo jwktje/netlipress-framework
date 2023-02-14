@@ -33,7 +33,17 @@ function get_footer()
 }
 
 function body_class() {
-    echo ''; //TODO: Implement body classes?
+    global $post;
+    $classes = [];
+    if ($post?->post_type === 'page') {
+        $classes[] = 'page';
+    }
+    if ($post?->post_type === 'post') {
+        $classes[] = 'single';
+    }
+    echo 'class="';
+    echo implode(' ', $classes);
+    echo '"';
 }
 
 function render_blocks()
@@ -60,4 +70,9 @@ function the_content()
 function is_404() {
     global $is404;
     return $is404;
+}
+
+function is_single() {
+    global $post;
+    return $post?->post_type === 'post';
 }
