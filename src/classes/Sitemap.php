@@ -10,7 +10,7 @@ class Sitemap
         $cacheTime = 3600; //in seconds
 
         //Check if sitemap is older than 1 hour
-        if (file_exists($sitemapFile) && time() - filemtime($sitemapFile) < $cacheTime && false) {
+        if (file_exists($sitemapFile) && time() - filemtime($sitemapFile) < $cacheTime) {
             //file was generated in last hour, so return it
             $this->outputSitemap();
         } else {
