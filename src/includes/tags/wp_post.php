@@ -40,7 +40,7 @@ function get_the_permalink($file = false)
     if (str_contains($slug_base, '/page')) {
         $slug_base = str_replace('/page', '', $slug_base);
     }
-    if($slug_base === '/post') {
+    if ($slug_base === '/post') {
         $slug_base .= '/';
     }
     $filename = $filename === 'index' ? '' : $filename;
@@ -137,11 +137,22 @@ function home_url()
     $isSecure = false;
     if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
         $isSecure = true;
-    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on') {
+    } elseif ((!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') || (!empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on')) {
         $isSecure = true;
     }
     //Build full URL
     $base = $isSecure ? 'https' : 'http';
     $base .= '://' . $_SERVER['SERVER_NAME'];
     return $base;
+}
+
+function the_date($format = 'F j, Y')
+{
+    echo get_the_date($format);
+}
+
+function get_the_date($format = 'F j, Y')
+{
+    global $post;
+    return date($format, filemtime($post->path));
 }
