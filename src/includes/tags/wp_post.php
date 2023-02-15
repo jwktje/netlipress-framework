@@ -29,7 +29,9 @@ function the_title()
 
 function get_the_permalink($file = false)
 {
-    $entryFile = $file ? $file : $GLOBALS['post']->path;
+    $path = $GLOBALS['post']->path ?? null;
+    $entryFile = $file ?? $path;
+    if (!$entryFile) return null;
     $path_parts = pathinfo($entryFile);
     $filename = $path_parts['filename'];
     $slug_base = str_replace(APP_ROOT . CONTENT_DIR, '', $path_parts['dirname']);
@@ -75,13 +77,23 @@ function get_posts($args = [])
         'numberposts' => 5,
         'orderby' => 'date',
         'order' => 'DESC',
-        'post_type' => 'post'
+        'post_type' => 'post',
     );
     // Merge options with defaults
     $args = array_merge($defaults, $args);
 
     //Get files
     $files = glob(APP_ROOT . CONTENT_DIR . '/' . $args['post_type'] . '/*');
+
+    //Filter on category
+    if (isset($args['category'])) {
+        foreach ($files as $idx => $file) {
+            $post = get_post($file);
+            if (!isset($post->category) || $args['category'] !== $post->category) {
+                unset($files[$idx]);
+            }
+        }
+    }
 
     //Sort options
     //TODO: More sort options?

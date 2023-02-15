@@ -32,13 +32,14 @@ function get_footer()
     }
 }
 
-function body_class() {
+function body_class()
+{
     global $post;
     $classes = [];
-    if ($post?->post_type === 'page') {
+    if (isset($post->post_type) && $post->post_type === 'page') {
         $classes[] = 'page';
     }
-    if ($post?->post_type === 'post') {
+    if (isset($post->post_type) && $post->post_type === 'post') {
         $classes[] = 'single';
     }
     echo 'class="';
@@ -67,12 +68,19 @@ function the_content()
     }
 }
 
-function is_404() {
+function is_404()
+{
     global $is404;
     return $is404;
 }
 
-function is_single() {
+function is_single()
+{
     global $post;
     return $post?->post_type === 'post';
+}
+
+function is_front_page() {
+    $request = parse_url($_SERVER['REQUEST_URI']);
+    return $request['path'] === '/';
 }

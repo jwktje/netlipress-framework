@@ -12,22 +12,21 @@ class Router
     {
         //Parse the incoming request
         $request = parse_url($_SERVER['REQUEST_URI']);
-        $requestedFile = pathinfo(($request['path']));
 
         //If req path root, render the frontpage
-        if ($request['path'] == '/') {
-            $this->handleUtilityPageRequest('/','front-page');
+        if ($request['path'] === '/') {
+            $this->handleUtilityPageRequest('', 'front-page');
             return;
         }
 
         //If req path is the blog home, setup the query data and render the post index template
-        if ($request['path'] == BLOG_HOME && file_exists(POSTS_DIR)) {
+        if ($request['path'] === BLOG_HOME && file_exists(POSTS_DIR)) {
             $this->blog_home();
             return;
         }
 
         //If req path is sitemap, create and return sitemap
-        if ($request['path'] == '/sitemap.xml') {
+        if ($request['path'] === '/sitemap.xml') {
             (new Sitemap())->returnSitemap();
             return;
         }
@@ -41,14 +40,15 @@ class Router
      * Render a page for an entry in a collection
      */
 
-    public function handleCollectionRequest($request) {
+    public function handleCollectionRequest($request)
+    {
         //Make a path array
         $pathArr = explode('/', $request['path']);
 
         //Get collection
         $collection = $this->getCollectionFromRequestPath($request['path']);
 
-        if($collection !== 'page') {
+        if ($collection !== 'page') {
             //Remove first part from the array because it's the collection base slug, and we already have this as a separate var.
             unset($pathArr[1]);
         }
@@ -58,7 +58,7 @@ class Router
         //Build file path
         $reqPath = APP_ROOT . CONTENT_DIR . '/' . $collection . $path;
         //Remove trailing slash if present
-        $reqPath = rtrim($reqPath,"/");
+        $reqPath = rtrim($reqPath, "/");
         //Build path to file
         $reqFile = is_dir($reqPath) ? $reqPath . '/index.json' : $reqPath . '.json'; //To handle nested collections correctly
 
@@ -70,17 +70,21 @@ class Router
      * Render a page for a unique page type
      */
 
-    public function handleUtilityPageRequest($slug, $template) {
+    public function handleUtilityPageRequest($slug, $template)
+    {
         $pageFile = APP_ROOT . CONTENT_DIR . '/page' . $slug . '/index.json';
-        if(file_exists($pageFile)) {
+        if (file_exists($pageFile)) {
             $tpl = new Template();
             http_response_code(200);
-            $template = file_exists(APP_ROOT . TEMPLATE_DIR . '/'.$template.'.php') ? $template : 'page';
-            global $post;
+            $template = file_exists(APP_ROOT . TEMPLATE_DIR . '/' . $template . '.php') ? $template : 'page';
+
+            global $post, $originalPost;
             $post = get_post($pageFile);
+            $originalPost = $post;  //Save post for resetting
+
             $tpl->render($template);
         } else {
-            if(DEBUG && $slug == '/') {
+            if (DEBUG && $slug === '/') {
                 $this->splashPage();
             }
         }
@@ -90,7 +94,8 @@ class Router
      * Get collection from Request
      */
 
-    public static function getCollectionFromRequestPath($requestPath) {
+    public static function getCollectionFromRequestPath($requestPath)
+    {
 
         $pathArr = explode('/', $requestPath);
         $collection = $pathArr[1];
@@ -112,13 +117,13 @@ class Router
     {
         $collections = [];
         //Core collections without single
-        $excluded = ['menu','settings'];
+        $excluded = ['menu', 'settings'];
 
         //Get paths
         $dirs = array_filter(glob(APP_ROOT . CONTENT_DIR . '/*'), 'is_dir');
-        foreach($dirs as $dir) {
+        foreach ($dirs as $dir) {
             $dirSlug = str_replace(APP_ROOT . CONTENT_DIR . '/', '', $dir);
-            if(!in_array($dirSlug, $excluded)) {
+            if (!in_array($dirSlug, $excluded)) {
                 $collections[] = $dirSlug;
             }
         }
@@ -136,10 +141,10 @@ class Router
 
         //Create a global loop array with entries for use in templates
         $foundPosts = [];
-        if(file_exists(POSTS_DIR)) {
+        if (file_exists(POSTS_DIR)) {
             foreach (new \DirectoryIterator(POSTS_DIR) as $fileInfo) {
                 if ($fileInfo->isDot()) continue;
-                if($fileInfo->getExtension() !== 'json') continue;
+                if ($fileInfo->getExtension() !== 'json') continue;
                 $foundPosts[] = $fileInfo->getPathname();
             }
         }
@@ -160,19 +165,20 @@ class Router
     {
         $tpl = new Template();
         http_response_code(200);
-        if ($collection == 'page') {
+        if ($collection === 'page') {
             $entrySlug = get_slug_from_entry($entry);
-            $templateToUse = file_exists(APP_ROOT . TEMPLATE_DIR . '/page-'.$entrySlug.'.php') ? 'page-'.$entrySlug : 'page';
-        } elseif ($collection == 'post') {
+            $templateToUse = file_exists(APP_ROOT . TEMPLATE_DIR . '/page-' . $entrySlug . '.php') ? 'page-' . $entrySlug : 'page';
+        } elseif ($collection === 'post') {
             $templateToUse = 'single';
+        } elseif ($collection === 'category') {
+            $templateToUse = 'archive';
         } else {
-            $templateToUse = file_exists(APP_ROOT . TEMPLATE_DIR . '/single-'.$collection.'.php') ? 'single-'.$collection : 'single';
+            $templateToUse = file_exists(APP_ROOT . TEMPLATE_DIR . '/single-' . $collection . '.php') ? 'single-' . $collection : 'single';
         }
 
         global $post, $originalPost;
         $post = get_post($entry);
-        //Save post for resetting
-        $originalPost = $post;
+        $originalPost = $post; //Save post for resetting
         $tpl->render($templateToUse);
     }
 
@@ -186,7 +192,8 @@ class Router
         $post = (object)['title' => '404']; //TODO: Possibly improve. Just to make header title work on 404
         $is404 = true;
         http_response_code(404);
-        include(APP_ROOT . TEMPLATE_DIR . '/404.php');
+        $tpl = new Template();
+        $tpl->render('404');
     }
 
     /**
