@@ -15,13 +15,20 @@ class NetlifyCms
         //Get base config file
         $config = json_decode(file_get_contents($configFile));
 
-        //Set git gateway based on environment
+        //Set git gateway and site url based on environment
         $cmsEnvironment = getenv('NETLIFY') ? 'production' : 'local';
-        if ($cmsEnvironment == 'production' && isset($config->config->backend_production)) {
-            unset($config->config->backend);
-            $config->config->backend = $config->config->backend_production;
-            unset($config->config->backend_production);
-        } elseif ($cmsEnvironment == 'local' && isset($config->config->backend_local)) {
+        if ($cmsEnvironment === 'production') {
+            if (isset($config->config->backend_production)) {
+                unset($config->config->backend);
+                $config->config->backend = $config->config->backend_production;
+                unset($config->config->backend_production);
+            }
+            if(isset($config->config->site_url_production)) {
+                unset($config->config->site_url);
+                $config->config->site_url = $config->config->site_url_production;
+                unset($config->config->site_url_production);
+            }
+        } elseif (isset($config->config->backend_local)) {
             unset($config->config->backend);
             $config->config->backend = $config->config->backend_local;
             unset($config->config->backend_local);
