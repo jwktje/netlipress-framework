@@ -81,6 +81,14 @@ function is_single()
 }
 
 function is_front_page() {
-    $request = parse_url($_SERVER['REQUEST_URI']);
-    return $request['path'] === '/';
+    if(isset($_SERVER['REQUEST_URI'])) {
+        $request = parse_url($_SERVER['REQUEST_URI']);
+        return $request['path'] === '/';
+    }
+    global $post;
+    if(isset($post->path)) {
+        $relativePath = str_replace(APP_ROOT . CONTENT_DIR , '', $post->path);
+        return $relativePath === '/page/index.json';
+    }
+    return false;
 }

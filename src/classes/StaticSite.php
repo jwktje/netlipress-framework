@@ -95,7 +95,7 @@ class StaticSite
 
             if ($relativeFilePath === '/page/index.json') {
                 //Create homepage
-                $this->router->handleUtilityPageRequest('/', 'front-page');
+                $this->router->handleUtilityPageRequest('', 'front-page');
             } else {
                 //Create default page
                 $this->router->handleCollectionRequest(['path' => $fileRelativeDirname . '/' . $pathInfo['filename']]);
