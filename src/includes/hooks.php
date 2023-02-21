@@ -31,6 +31,14 @@ function wp_head()
     }
 }
 
+function wp_body_open()
+{
+    //GTM optional include
+    if (GTM_ACTIVE) {
+        gtm_body();
+    }
+}
+
 function wp_footer()
 {
     //Mock enqueue of JS
