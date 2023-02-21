@@ -29,24 +29,22 @@ function the_title()
 
 function get_the_permalink($file = false)
 {
-    $path = $GLOBALS['post']->path ?? null;
-    $entryFile = $file ?? $path;
+    $path = $GLOBALS['post']->path ?? null; //Maybe post is in the global
+    $entryFile = $file ?? $path; //Maybe a filepath was passed
+    if(isset($file->path)) $entryFile = $file->path; //Maybe an object was passed
     if (!$entryFile) return null;
     $path_parts = pathinfo($entryFile);
     $filename = $path_parts['filename'];
     $slug_base = str_replace(APP_ROOT . CONTENT_DIR, '', $path_parts['dirname']);
     //Remove page base slug root + when nested
     if ($slug_base === '/page') {
-        $slug_base = '/';
+        $slug_base = '';
     }
     if (str_contains($slug_base, '/page')) {
         $slug_base = str_replace('/page', '', $slug_base);
     }
-    if ($slug_base === '/post') {
-        $slug_base .= '/';
-    }
     $filename = $filename === 'index' ? '' : $filename;
-    return $slug_base . $filename;
+    return $slug_base . '/' . $filename;
 }
 
 function get_permalink($file = false)
@@ -97,12 +95,17 @@ function get_posts($args = [])
 
     //Sort options
     //TODO: More sort options?
-    if ($args['orderby'] == 'date') {
-        $sort = $args['order'] == 'DESC' ? SORT_DESC : SORT_ASC;
+    if ($args['orderby'] === 'date') {
+        $sort = $args['order'] === 'DESC' ? SORT_DESC : SORT_ASC;
         array_multisort(array_map('filectime', $files), $sort, $files);
     }
-    if ($args['orderby'] == 'rand') {
+    if ($args['orderby'] === 'rand') {
         shuffle($files);
+    }
+    if ($args['orderby'] === 'menu_order') {
+        usort($files, function($a, $b) {
+            return strcmp($a->menu_order, $b->menu_order);
+        });
     }
     if ($args['numberposts'] !== -1) {
         $files = array_slice($files, 0, $args['numberposts']);
@@ -167,4 +170,13 @@ function get_the_date($format = 'F j, Y')
 {
     global $post;
     return date($format, filemtime($post->path));
+}
+
+function get_the_category($post)
+{
+    if (!$post) return null;
+    $cat = get_field('category', $post);
+    $catFilePath = APP_ROOT . CONTENT_DIR . '/category/' . $cat . '.json';
+    if(!file_exists($catFilePath)) return null;
+    return get_post($catFilePath);
 }
