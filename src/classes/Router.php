@@ -140,17 +140,13 @@ class Router
         http_response_code(200);
 
         //Create a global loop array with entries for use in templates
-        $foundPosts = [];
+        $posts = [];
         if (file_exists(POSTS_DIR)) {
-            foreach (new \DirectoryIterator(POSTS_DIR) as $fileInfo) {
-                if ($fileInfo->isDot()) continue;
-                if ($fileInfo->getExtension() !== 'json') continue;
-                $foundPosts[] = $fileInfo->getPathname();
-            }
+            $posts = get_posts(['numberposts' => -1]);
         }
 
         global $loop, $post;
-        $loop = $foundPosts;
+        $loop = $posts;
         $post = (object)['title' => 'Blog', 'path' => BLOG_HOME]; //TODO: Possibly improve. This makes the page title work but maybe it should be a config value
 
         $tpl->render('index');

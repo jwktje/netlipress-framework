@@ -31,7 +31,7 @@ function get_the_permalink($file = false)
 {
     $path = $GLOBALS['post']->path ?? null; //Maybe post is in the global
     $entryFile = $file ?? $path; //Maybe a filepath was passed
-    if(isset($file->path)) $entryFile = $file->path; //Maybe an object was passed
+    if (isset($file->path)) $entryFile = $file->path; //Maybe an object was passed
     if (!$entryFile) return null;
     $path_parts = pathinfo($entryFile);
     $filename = $path_parts['filename'];
@@ -97,13 +97,35 @@ function get_posts($args = [])
     //TODO: More sort options?
     if ($args['orderby'] === 'date') {
         $sort = $args['order'] === 'DESC' ? SORT_DESC : SORT_ASC;
-        array_multisort(array_map('filectime', $files), $sort, $files);
+
+        //Sort by date field, if none found, do filectime
+        $foundDateField = false;
+
+        $postsSortArray = [];
+        foreach ($files as $idx => $file) {
+            $post = get_post($file);
+            if (isset($post->date)) {
+                $foundDateField = true;
+            }
+            $postsSortArray[] = ['file' => $file, 'date' => $post->date ?? null];
+        }
+        if ($foundDateField) {
+            usort($postsSortArray, function ($a, $b) {
+                return strcmp($a['date'] ?? null, $b['date'] ?? null);
+            });
+            $files = array_column($postsSortArray, 'file');
+            if ($sort === SORT_DESC) {
+                $files = array_reverse($files);
+            }
+        } else {
+            array_multisort(array_map('filectime', $files), $sort, $files);
+        }
     }
     if ($args['orderby'] === 'rand') {
         shuffle($files);
     }
     if ($args['orderby'] === 'menu_order') {
-        usort($files, function($a, $b) {
+        usort($files, function ($a, $b) {
             return strcmp($a->menu_order, $b->menu_order);
         });
     }
@@ -169,6 +191,12 @@ function the_date($format = 'F j, Y')
 function get_the_date($format = 'F j, Y')
 {
     global $post;
+    if (is_string($post)) {
+        $post = get_post($post);
+    }
+    if (isset($post->date)) {
+        return date($format, strtotime($post->date));
+    }
     return date($format, filemtime($post->path));
 }
 
@@ -177,6 +205,6 @@ function get_the_category($post)
     if (!$post) return null;
     $cat = get_field('category', $post);
     $catFilePath = APP_ROOT . CONTENT_DIR . '/category/' . $cat . '.json';
-    if(!file_exists($catFilePath)) return null;
+    if (!file_exists($catFilePath)) return null;
     return get_post($catFilePath);
 }
